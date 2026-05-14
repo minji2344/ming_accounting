@@ -258,11 +258,67 @@
   .dday-rows td { padding: 9px 16px; border-bottom: 1px solid #f8fafc; font-size: 13px; }
   .dday-rows tr:last-child td { border-bottom: none; }
   .cf-month-bar { display: inline-block; height: 12px; border-radius: 4px; background: #6366f1; opacity: 0.7; vertical-align: middle; margin-left: 8px; }
+
+  /* Login */
+  .login-overlay {
+    position: fixed; inset: 0; z-index: 99999;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .login-overlay.hidden { display: none; }
+  .login-box {
+    background: white; border-radius: 20px; padding: 44px 40px;
+    width: 420px; max-width: 92vw;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.5);
+    animation: loginFadeIn 0.4s ease;
+  }
+  @keyframes loginFadeIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  .login-logo { text-align:center; margin-bottom:32px; }
+  .login-logo .icon { font-size:40px; color:#6366f1; margin-bottom:10px; }
+  .login-logo h2 { font-size:20px; font-weight:700; color:#0f172a; margin-bottom:4px; }
+  .login-logo p { font-size:13px; color:#94a3b8; }
+  .login-error { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; border-radius:8px; padding:10px 14px; font-size:13px; margin-bottom:16px; display:none; }
+  .login-btn { width:100%; padding:12px; font-size:14px; font-weight:700; border-radius:10px; background:#6366f1; color:white; border:none; cursor:pointer; transition:all 0.2s; margin-top:8px; font-family:inherit; }
+  .login-btn:hover { background:#4f46e5; transform:translateY(-1px); box-shadow:0 6px 18px rgba(99,102,241,0.4); }
+  .login-btn:disabled { background:#a5b4fc; cursor:not-allowed; transform:none; box-shadow:none; }
+  .login-divider { text-align:center; font-size:12px; color:#94a3b8; margin:20px 0 16px; }
+  .sidebar-user { font-size:11px; color:#475569; margin-bottom:2px; word-break:break-all; }
+  .logout-btn { width:100%; margin-top:8px; padding:7px; font-size:12px; background:rgba(255,255,255,0.06); color:#94a3b8; border:1px solid rgba(255,255,255,0.1); border-radius:7px; cursor:pointer; transition:all 0.15s; font-family:inherit; }
+  .logout-btn:hover { background:rgba(239,68,68,0.15); color:#f87171; border-color:rgba(239,68,68,0.3); }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
+
+<!-- LOGIN OVERLAY -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="icon">◈</div>
+      <h2>미수금 관리 시스템</h2>
+      <p>계정에 로그인하여 계속하세요</p>
+    </div>
+    <div class="login-error" id="loginError"></div>
+    <div class="form-group" style="margin-bottom:14px;">
+      <label style="font-size:12px;font-weight:600;color:#475569;margin-bottom:5px;display:block;">이메일</label>
+      <input type="email" id="loginEmail" placeholder="이메일 주소 입력"
+        style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;font-family:inherit;transition:all 0.15s;background:#f8fafc;"
+        onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
+    </div>
+    <div class="form-group" style="margin-bottom:20px;">
+      <label style="font-size:12px;font-weight:600;color:#475569;margin-bottom:5px;display:block;">비밀번호</label>
+      <div style="position:relative;">
+        <input type="password" id="loginPassword" placeholder="비밀번호 입력"
+          style="width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:14px;font-family:inherit;transition:all 0.15s;background:#f8fafc;padding-right:44px;"
+          onkeydown="if(event.key==='Enter')handleLogin()">
+        <button onclick="togglePw()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;font-size:16px;" id="pwToggle">👁</button>
+      </div>
+    </div>
+    <button class="login-btn" id="loginBtn" onclick="handleLogin()">로그인</button>
+    <div class="login-divider">AJW 회계팀 전용 시스템</div>
+  </div>
+</div>
 
 <div class="layout">
 
@@ -279,8 +335,10 @@
     <div class="nav-tab" onclick="showSection('log', this)">📜 작업 로그</div>
   </div>
   <div class="sidebar-footer">
-    <b>작업자: <span id="workerName" onclick="changeWorker()" style="cursor:pointer;text-decoration:underline dotted;" title="클릭하여 변경">-</span></b>
+    <div class="sidebar-user" id="loginUserEmail"></div>
+    <b style="color:#cbd5e1;">작업자: <span id="workerName" onclick="changeWorker()" style="cursor:pointer;text-decoration:underline dotted;color:#e2e8f0;" title="클릭하여 변경">-</span></b>
     <span id="currentDate"></span>
+    <button class="logout-btn" onclick="handleLogout()">로그아웃</button>
   </div>
 </aside>
 
@@ -1716,11 +1774,7 @@ function renderReport() {
 let currentWorker = localStorage.getItem('misugeum_worker') || '';
 
 function initWorker() {
-  if (!currentWorker) {
-    currentWorker = prompt('작업자 이름을 입력하세요:') || '미입력';
-    localStorage.setItem('misugeum_worker', currentWorker);
-  }
-  document.getElementById('workerName').textContent = currentWorker;
+  if (currentWorker) document.getElementById('workerName').textContent = currentWorker;
 }
 
 function changeWorker() {
@@ -2031,13 +2085,66 @@ function resetAll() {
   });
 }
 
-(async () => {
-  initWorker();
-  await load();
+// ============================================================
+// AUTH
+// ============================================================
+function togglePw() {
+  const el = document.getElementById('loginPassword');
+  el.type = el.type === 'password' ? 'text' : 'password';
+}
+
+async function handleLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw    = document.getElementById('loginPassword').value;
+  const btn   = document.getElementById('loginBtn');
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+  if (!email || !pw) { errEl.textContent = '이메일과 비밀번호를 입력하세요.'; errEl.style.display='block'; return; }
+  btn.textContent = '로그인 중...'; btn.disabled = true;
+  const { error } = await supabaseClient.auth.signInWithPassword({ email, password: pw });
+  btn.textContent = '로그인'; btn.disabled = false;
+  if (error) {
+    errEl.textContent = '이메일 또는 비밀번호가 올바르지 않습니다.';
+    errEl.style.display = 'block';
+  }
+}
+
+async function handleLogout() {
+  await supabaseClient.auth.signOut();
+}
+
+async function startApp(session) {
+  document.getElementById('loginOverlay').classList.add('hidden');
+  // 작업자 이름: localStorage 우선, 없으면 이메일 앞부분
+  if (!currentWorker) {
+    currentWorker = session.user.email.split('@')[0];
+    localStorage.setItem('misugeum_worker', currentWorker);
+  }
+  document.getElementById('workerName').textContent = currentWorker;
+  document.getElementById('loginUserEmail').textContent = session.user.email;
   document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric',weekday:'short'});
   const tb = document.getElementById('topbarTitle');
   if (tb) tb.textContent = sectionTitles['dashboard'];
+  await load();
   renderDashboard();
+}
+
+supabaseClient.auth.onAuthStateChange(async (event, session) => {
+  if (session) {
+    await startApp(session);
+  } else {
+    document.getElementById('loginOverlay').classList.remove('hidden');
+    document.getElementById('loginUserEmail').textContent = '';
+  }
+});
+
+// 페이지 로드 시 세션 확인
+(async () => {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) {
+    await startApp(session);
+  }
+  // 세션 없으면 로그인 오버레이가 그냥 보임
 })();
 </script>
 </body>
