@@ -2115,6 +2115,12 @@ async function handleLogin() {
 
 async function handleLogout() {
   await supabaseClient.auth.signOut();
+  // 이벤트 대기 없이 바로 UI 전환
+  document.getElementById('loginOverlay').classList.remove('hidden');
+  document.getElementById('loginUserEmail').textContent = '';
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPassword').value = '';
+  document.getElementById('loginError').style.display = 'none';
 }
 
 async function startApp(session) {
