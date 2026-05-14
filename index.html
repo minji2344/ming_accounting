@@ -784,8 +784,8 @@ function renderMonthlyTrend() {
   const maxAmt = Math.max(...data.map(([, v]) => v.amt));
   let prev = null;
   const trs = data.map(([ym, v]) => {
-    const [y, m] = ym.split('-');
-    const label = `${y}년 ${parseInt(m)}월`;
+    const parts = ym.split('-');
+    const label = parts.length >= 2 ? `${parts[0]}년 ${parseInt(parts[1])}월` : ym;
     const diff = prev !== null ? v.amt - prev : null;
     const diffStr = diff === null ? '-'
       : diff > 0 ? `<span style="color:#ef4444">▲ ${fmtn(diff)}</span>`
@@ -850,12 +850,13 @@ function openReport() {
   const monthly = getMonthlyTrend();
   let prevAmt = null;
   const monthRows = monthly.map(([ym, v]) => {
-    const [y, m] = ym.split('-');
+    const parts = ym.split('-');
+    const label = parts.length >= 2 ? `${parts[0]}년 ${parseInt(parts[1])}월` : ym;
     const diff = prevAmt !== null ? v.amt - prevAmt : null;
     const diffStr = diff===null?'-':diff>0?`▲ ${fmtn(diff)}`:`▼ ${fmtn(Math.abs(diff))}`;
     prevAmt = v.amt;
     return `<tr>
-      <td style="font-weight:600;">${y}년 ${parseInt(m)}월</td>
+      <td style="font-weight:600;">${label}</td>
       <td class="text-center">${v.cnt}건</td>
       <td class="text-right amount">${fmtn(v.amt)}</td>
       <td class="text-right amount" style="color:#ef4444">${fmtn(v.overdue)}</td>
