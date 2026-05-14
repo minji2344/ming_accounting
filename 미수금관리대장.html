@@ -4,97 +4,174 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>미수금관리대장 자동화시스템</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Malgun Gothic', sans-serif; background: #f0f2f5; color: #333; font-size: 13px; }
+  body { font-family: 'Inter', 'Malgun Gothic', sans-serif; background: #f1f5f9; color: #1e293b; font-size: 13px; }
 
   /* Header */
-  .header { background: linear-gradient(135deg, #1a3c6e, #2563eb); color: white; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-  .header h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
-  .header-right { display: flex; gap: 8px; align-items: center; font-size: 12px; opacity: 0.85; }
+  .header {
+    background: #0f172a;
+    color: white; padding: 0 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.06);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header h1 { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; color: #f8fafc; }
+  .header h1 span { color: #6366f1; margin-right: 6px; }
+  .header-right { display: flex; gap: 10px; align-items: center; font-size: 12px; color: #94a3b8; }
+  .header-right b { color: #e2e8f0; }
 
-  /* Nav Tabs */
-  .nav { background: white; border-bottom: 2px solid #e5e7eb; display: flex; padding: 0 24px; }
-  .nav-tab { padding: 12px 20px; cursor: pointer; font-size: 13px; font-weight: 600; color: #6b7280; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
-  .nav-tab:hover { color: #2563eb; }
-  .nav-tab.active { color: #2563eb; border-bottom-color: #2563eb; }
+  /* Nav */
+  .nav {
+    background: white;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex; padding: 0 28px;
+    gap: 2px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .nav-tab {
+    padding: 14px 18px; cursor: pointer; font-size: 13px; font-weight: 500;
+    color: #64748b; border-bottom: 2px solid transparent;
+    margin-bottom: -1px; transition: all 0.15s; white-space: nowrap;
+  }
+  .nav-tab:hover { color: #6366f1; background: #f8faff; }
+  .nav-tab.active { color: #6366f1; border-bottom-color: #6366f1; font-weight: 600; }
 
-  /* Main Content */
-  .main { padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
+  /* Main */
+  .main { padding: 24px 28px; max-width: 1440px; margin: 0 auto; }
   .section { display: none; }
   .section.active { display: block; }
 
-  /* Dashboard Cards */
-  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-  .card { background: white; border-radius: 10px; padding: 18px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); border-left: 4px solid; }
-  .card.blue { border-color: #2563eb; } .card.red { border-color: #ef4444; } .card.orange { border-color: #f97316; } .card.green { border-color: #22c55e; }
-  .card-label { font-size: 11px; color: #9ca3af; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-  .card-value { font-size: 22px; font-weight: 700; margin: 6px 0 4px; }
-  .card-sub { font-size: 11px; color: #6b7280; }
-  .card.blue .card-value { color: #2563eb; } .card.red .card-value { color: #ef4444; } .card.orange .card-value { color: #f97316; } .card.green .card-value { color: #22c55e; }
+  /* Cards */
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
+  .card {
+    background: white; border-radius: 14px; padding: 20px 22px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    position: relative; overflow: hidden;
+    border: 1px solid #f1f5f9;
+  }
+  .card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; }
+  .card.blue::before { background: linear-gradient(180deg,#6366f1,#818cf8); }
+  .card.red::before { background: linear-gradient(180deg,#ef4444,#f87171); }
+  .card.orange::before { background: linear-gradient(180deg,#f97316,#fb923c); }
+  .card.green::before { background: linear-gradient(180deg,#10b981,#34d399); }
+  .card-label { font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; }
+  .card-value { font-size: 24px; font-weight: 700; margin: 8px 0 4px; letter-spacing: -0.5px; }
+  .card-sub { font-size: 11px; color: #94a3b8; }
+  .card.blue .card-value { color: #6366f1; }
+  .card.red .card-value { color: #ef4444; }
+  .card.orange .card-value { color: #f97316; }
+  .card.green .card-value { color: #10b981; }
 
   /* Panel */
-  .panel { background: white; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 20px; }
-  .panel-header { padding: 14px 20px; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; }
-  .panel-title { font-size: 14px; font-weight: 700; color: #111827; }
+  .panel {
+    background: white; border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    margin-bottom: 20px; border: 1px solid #f1f5f9;
+  }
+  .panel-header {
+    padding: 16px 20px; border-bottom: 1px solid #f1f5f9;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .panel-title { font-size: 14px; font-weight: 600; color: #0f172a; }
   .panel-body { padding: 20px; }
 
   /* Form */
-  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-  .form-group { display: flex; flex-direction: column; gap: 4px; }
-  .form-group label { font-size: 12px; font-weight: 600; color: #374151; }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group label { font-size: 11.5px; font-weight: 600; color: #475569; letter-spacing: 0.2px; }
   .form-group input, .form-group select, .form-group textarea {
-    padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px;
-    font-family: inherit; transition: border 0.2s;
+    padding: 9px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+    font-size: 13px; font-family: inherit; transition: all 0.15s;
+    background: #f8fafc; color: #1e293b;
   }
-  .form-group input:focus, .form-group select:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+  .form-group input:focus, .form-group select:focus {
+    outline: none; border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.1); background: white;
+  }
   .form-group.full { grid-column: 1 / -1; }
 
   /* Buttons */
-  .btn { padding: 8px 16px; border-radius: 6px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
-  .btn-primary { background: #2563eb; color: white; } .btn-primary:hover { background: #1d4ed8; }
-  .btn-success { background: #22c55e; color: white; } .btn-success:hover { background: #16a34a; }
-  .btn-danger { background: #ef4444; color: white; } .btn-danger:hover { background: #dc2626; }
-  .btn-warning { background: #f97316; color: white; } .btn-warning:hover { background: #ea580c; }
-  .btn-secondary { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; } .btn-secondary:hover { background: #e5e7eb; }
-  .btn-sm { padding: 4px 10px; font-size: 12px; }
-  .btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .btn {
+    padding: 8px 16px; border-radius: 8px; border: none;
+    font-size: 12.5px; font-weight: 600; cursor: pointer;
+    transition: all 0.15s; font-family: inherit; letter-spacing: 0.1px;
+  }
+  .btn-primary { background: #6366f1; color: white; }
+  .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+  .btn-success { background: #10b981; color: white; }
+  .btn-success:hover { background: #059669; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
+  .btn-danger { background: #ef4444; color: white; }
+  .btn-danger:hover { background: #dc2626; transform: translateY(-1px); }
+  .btn-warning { background: #f97316; color: white; }
+  .btn-warning:hover { background: #ea580c; }
+  .btn-secondary { background: white; color: #475569; border: 1.5px solid #e2e8f0; }
+  .btn-secondary:hover { background: #f8fafc; border-color: #cbd5e1; }
+  .btn-sm { padding: 4px 10px; font-size: 11.5px; border-radius: 6px; }
+  .btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
 
   /* Table */
   .table-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; }
-  thead th { background: #f8fafc; padding: 10px 12px; text-align: left; font-size: 12px; font-weight: 700; color: #6b7280; border-bottom: 2px solid #e5e7eb; white-space: nowrap; }
-  tbody td { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; font-size: 13px; vertical-align: middle; }
+  thead th {
+    background: #f8fafc; padding: 11px 14px;
+    text-align: left; font-size: 11.5px; font-weight: 600;
+    color: #64748b; border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap; letter-spacing: 0.3px;
+  }
+  tbody td { padding: 11px 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
   tbody tr:hover { background: #f8fafc; }
   .text-right { text-align: right; }
   .text-center { text-align: center; }
 
   /* Badges */
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-  .badge-red { background: #fee2e2; color: #dc2626; }
-  .badge-orange { background: #ffedd5; color: #ea580c; }
-  .badge-yellow { background: #fef9c3; color: #ca8a04; }
-  .badge-green { background: #dcfce7; color: #16a34a; }
-  .badge-blue { background: #dbeafe; color: #2563eb; }
-  .badge-gray { background: #f3f4f6; color: #6b7280; }
+  .badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-red { background: #fef2f2; color: #dc2626; }
+  .badge-orange { background: #fff7ed; color: #ea580c; }
+  .badge-yellow { background: #fefce8; color: #ca8a04; }
+  .badge-green { background: #f0fdf4; color: #16a34a; }
+  .badge-blue { background: #eef2ff; color: #6366f1; }
+  .badge-gray { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
 
-  /* Search/Filter Bar */
-  .filter-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
-  .filter-bar input, .filter-bar select { padding: 7px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; font-family: inherit; }
-  .filter-bar input { min-width: 180px; }
+  /* Filter Bar */
+  .filter-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+  .filter-bar input, .filter-bar select {
+    padding: 8px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+    font-size: 13px; font-family: inherit; background: #f8fafc;
+    transition: all 0.15s;
+  }
+  .filter-bar input:focus, .filter-bar select:focus {
+    outline: none; border-color: #6366f1; background: white;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+  }
+  .filter-bar input { min-width: 200px; }
 
   /* Modal */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; }
   .modal-overlay.open { display: flex; }
-  .modal { background: white; border-radius: 12px; padding: 24px; width: 480px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-  .modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #111827; }
-  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+  .modal {
+    background: white; border-radius: 16px; padding: 28px;
+    width: 500px; max-width: 95vw; max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.2);
+  }
+  .modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 20px; color: #0f172a; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9; }
 
   /* Toast */
-  .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
-  .toast { padding: 12px 16px; border-radius: 8px; color: white; font-size: 13px; font-weight: 600; animation: slideIn 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.2); min-width: 200px; }
-  .toast.success { background: #22c55e; } .toast.error { background: #ef4444; } .toast.info { background: #2563eb; }
-  @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    padding: 12px 18px; border-radius: 10px; color: white;
+    font-size: 13px; font-weight: 500; animation: slideUp 0.3s ease;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15); min-width: 220px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .toast.success { background: #10b981; }
+  .toast.error { background: #ef4444; }
+  .toast.info { background: #6366f1; }
+  @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
   /* Print */
   @media print {
@@ -103,33 +180,42 @@
     body { background: white; }
   }
 
-  /* Overdue highlight */
-  tr.overdue-high td { background: #fff5f5 !important; }
-  tr.overdue-med td { background: #fffbeb !important; }
+  /* Status highlight */
+  tr.status-overdue td { background: #fff5f5 !important; }
+  tr.status-today td { background: #eef2ff !important; }
+  tr.status-soon td { background: #fefce8 !important; }
 
-  .amount { font-family: 'Courier New', monospace; font-weight: 600; }
-  .empty-state { text-align: center; padding: 40px; color: #9ca3af; }
-  .empty-state .icon { font-size: 40px; margin-bottom: 8px; }
+  .status-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; }
+  .dot-blue { background:#6366f1; } .dot-yellow { background:#eab308; } .dot-red { background:#ef4444; } .dot-green { background:#10b981; }
+
+  .amount { font-family: 'Inter', monospace; font-weight: 600; }
+  .empty-state { text-align: center; padding: 48px; color: #94a3b8; }
+  .empty-state .icon { font-size: 36px; margin-bottom: 10px; opacity: 0.5; }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
 <div class="header">
-  <h1>📋 미수금관리대장 자동화시스템</h1>
+  <h1><span>◈</span> 미수금 관리 시스템</h1>
   <div class="header-right">
     <span id="currentDate"></span>
+    <span style="font-size:12px;">작업자: <b id="workerName" onclick="changeWorker()" style="cursor:pointer;text-decoration:underline;" title="클릭하여 변경">-</b></span>
     <button class="btn btn-secondary btn-sm" onclick="exportCSV()">📊 CSV 내보내기</button>
     <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨️ 인쇄</button>
+    <button class="btn btn-danger btn-sm" onclick="resetAll()">🗑️ 전체 초기화</button>
   </div>
 </div>
 
 <div class="nav">
   <div class="nav-tab active" onclick="showSection('dashboard', this)">📊 대시보드</div>
-  <div class="nav-tab" onclick="showSection('register', this)">➕ 미수금 등록</div>
   <div class="nav-tab" onclick="showSection('ledger', this)">📋 미수금 대장</div>
-  <div class="nav-tab" onclick="showSection('payment', this)">💰 입금 처리</div>
   <div class="nav-tab" onclick="showSection('customer', this)">🏢 거래처 관리</div>
   <div class="nav-tab" onclick="showSection('report', this)">📈 연체 현황</div>
+  <div class="nav-tab" onclick="showSection('import', this)">📂 엑셀 업로드</div>
+  <div class="nav-tab" onclick="showSection('completed', this)">✅ 완료</div>
+  <div class="nav-tab" onclick="showSection('log', this)">📜 작업 로그</div>
 </div>
 
 <div class="main">
@@ -137,79 +223,20 @@
   <!-- ===== DASHBOARD ===== -->
   <div class="section active" id="section-dashboard">
     <div class="cards" id="dashCards"></div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; flex-wrap:wrap;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
       <div class="panel">
         <div class="panel-header"><span class="panel-title">⚠️ 연체 TOP 5 거래처</span></div>
         <div class="panel-body" id="top5Panel"></div>
       </div>
       <div class="panel">
-        <div class="panel-header"><span class="panel-title">📅 최근 입금 내역</span></div>
-        <div class="panel-body" id="recentPayPanel"></div>
+        <div class="panel-header"><span class="panel-title">📊 입금예정일 현황</span></div>
+        <div class="panel-body" id="statusSummaryPanel"></div>
       </div>
     </div>
     <div class="panel" style="margin-top:16px;">
       <div class="panel-header"><span class="panel-title">📋 미수금 현황 요약</span></div>
       <div class="panel-body">
         <div class="table-wrap"><table id="summaryTable"></table></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== REGISTER ===== -->
-  <div class="section" id="section-register">
-    <div class="panel">
-      <div class="panel-header"><span class="panel-title">➕ 미수금 등록</span></div>
-      <div class="panel-body">
-        <div class="form-grid">
-          <div class="form-group">
-            <label>거래처 *</label>
-            <select id="reg_customer" onchange="fillCustomerInfo()">
-              <option value="">-- 거래처 선택 --</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>발생일 *</label>
-            <input type="date" id="reg_date">
-          </div>
-          <div class="form-group">
-            <label>만기일 *</label>
-            <input type="date" id="reg_duedate">
-          </div>
-          <div class="form-group">
-            <label>청구금액 (원) *</label>
-            <input type="number" id="reg_amount" placeholder="0" min="0" oninput="formatAmountInput(this)">
-          </div>
-          <div class="form-group">
-            <label>거래 구분</label>
-            <select id="reg_type">
-              <option>외상매출</option>
-              <option>용역비</option>
-              <option>임대료</option>
-              <option>수수료</option>
-              <option>기타</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>담당자</label>
-            <input type="text" id="reg_manager" placeholder="담당자명">
-          </div>
-          <div class="form-group">
-            <label>연락처</label>
-            <input type="text" id="reg_contact" placeholder="000-0000-0000">
-          </div>
-          <div class="form-group">
-            <label>증빙 번호</label>
-            <input type="text" id="reg_docno" placeholder="세금계산서/거래명세서 번호">
-          </div>
-          <div class="form-group full">
-            <label>비고</label>
-            <textarea id="reg_memo" rows="2" placeholder="메모 입력..."></textarea>
-          </div>
-        </div>
-        <div class="btn-group">
-          <button class="btn btn-primary" onclick="addReceivable()">등록</button>
-          <button class="btn btn-secondary" onclick="clearRegForm()">초기화</button>
-        </div>
       </div>
     </div>
   </div>
@@ -222,13 +249,18 @@
         <span id="ledger-count" style="font-size:12px;color:#6b7280;"></span>
       </div>
       <div class="panel-body">
+        <div id="bulkActions" style="display:none; margin-bottom:12px; padding:12px 16px; background:#eef2ff; border-radius:10px; display:none; align-items:center; gap:10px;">
+          <span id="checkedCount" style="font-weight:600; color:#6366f1; font-size:13px;"></span>
+          <button class="btn btn-success btn-sm" onclick="bulkComplete()">✅ 일괄 완료</button>
+          <button class="btn btn-danger btn-sm" onclick="bulkDelete()">🗑 일괄 삭제</button>
+          <button class="btn btn-secondary btn-sm" onclick="clearChecks()">선택 해제</button>
+        </div>
         <div class="filter-bar">
           <input type="text" id="f_search" placeholder="🔍 거래처/비고 검색" oninput="renderLedger()">
           <select id="f_status" onchange="renderLedger()">
             <option value="">전체 상태</option>
-            <option value="미수">미수</option>
-            <option value="일부입금">일부입금</option>
-            <option value="완납">완납</option>
+            <option value="연체">연체</option>
+            <option value="정상">정상</option>
           </select>
           <select id="f_type" onchange="renderLedger()">
             <option value="">전체 구분</option>
@@ -247,9 +279,10 @@
           <table>
             <thead>
               <tr>
-                <th>NO</th><th>거래처</th><th>발생일</th><th>만기일</th><th>구분</th>
-                <th class="text-right">청구금액</th><th class="text-right">입금액</th><th class="text-right">잔액</th>
-                <th>연체일수</th><th>상태</th><th>담당자</th><th>비고</th><th>관리</th>
+                <th style="width:36px;"><input type="checkbox" id="checkAll" onchange="toggleCheckAll(this)"></th>
+                <th>NO</th><th>거래처</th><th>발생일</th><th>입금예정일</th><th>구분</th>
+                <th class="text-right">잔액</th>
+                <th>연체일수</th><th>상태</th><th>영업담당자</th><th>비고</th><th>관리</th>
               </tr>
             </thead>
             <tbody id="ledgerBody"></tbody>
@@ -260,70 +293,23 @@
     </div>
   </div>
 
-  <!-- ===== PAYMENT ===== -->
-  <div class="section" id="section-payment">
-    <div class="panel">
-      <div class="panel-header"><span class="panel-title">💰 입금 처리</span></div>
-      <div class="panel-body">
-        <div class="form-grid">
-          <div class="form-group">
-            <label>미수금 선택 *</label>
-            <select id="pay_receivable" onchange="onSelectReceivable()">
-              <option value="">-- 미수금 선택 --</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>입금일 *</label>
-            <input type="date" id="pay_date">
-          </div>
-          <div class="form-group">
-            <label>입금액 (원) *</label>
-            <input type="number" id="pay_amount" placeholder="0" min="0">
-          </div>
-          <div class="form-group">
-            <label>입금 방법</label>
-            <select id="pay_method">
-              <option>계좌이체</option><option>현금</option><option>수표</option><option>어음</option><option>카드</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>잔액 (자동계산)</label>
-            <input type="text" id="pay_remain" readonly style="background:#f3f4f6; font-weight:700; color:#ef4444;">
-          </div>
-          <div class="form-group full">
-            <label>비고</label>
-            <input type="text" id="pay_memo" placeholder="입금 메모">
-          </div>
-        </div>
-        <div class="btn-group">
-          <button class="btn btn-success" onclick="processPayment()">입금 처리</button>
-          <button class="btn btn-secondary" onclick="clearPayForm()">초기화</button>
-        </div>
-      </div>
-    </div>
-    <div class="panel">
-      <div class="panel-header"><span class="panel-title">📜 입금 이력</span></div>
-      <div class="panel-body">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>입금일</th><th>거래처</th><th>구분</th><th class="text-right">입금액</th><th>방법</th><th>비고</th><th>관리</th></tr></thead>
-            <tbody id="payHistBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- ===== CUSTOMER ===== -->
   <div class="section" id="section-customer">
     <div class="panel">
-      <div class="panel-header"><span class="panel-title">🏢 거래처 등록</span></div>
+      <div class="panel-header">
+        <span class="panel-title">🏢 거래처 등록</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="file" id="custExcelInput" accept=".xlsx,.xls" style="display:none" onchange="handleCustExcelUpload(event)">
+          <button class="btn btn-primary btn-sm" onclick="document.getElementById('custExcelInput').click()">📂 엑셀로 등록</button>
+        </div>
+      </div>
       <div class="panel-body">
         <div class="form-grid">
           <div class="form-group"><label>거래처명 *</label><input type="text" id="cust_name" placeholder="거래처명"></div>
           <div class="form-group"><label>사업자번호</label><input type="text" id="cust_regnum" placeholder="000-00-00000"></div>
           <div class="form-group"><label>대표자</label><input type="text" id="cust_ceo" placeholder="대표자명"></div>
-          <div class="form-group"><label>담당자</label><input type="text" id="cust_mgr" placeholder="담당자명"></div>
+          <div class="form-group"><label>영업담당자</label><input type="text" id="cust_mgr" placeholder="영업담당자명"></div>
+          <div class="form-group"><label>결제조건 (일)</label><input type="number" id="cust_terms" placeholder="예: 30" min="0"></div>
           <div class="form-group"><label>연락처</label><input type="text" id="cust_tel" placeholder="000-0000-0000"></div>
           <div class="form-group"><label>이메일</label><input type="email" id="cust_email" placeholder="email@example.com"></div>
           <div class="form-group full"><label>주소</label><input type="text" id="cust_addr" placeholder="주소"></div>
@@ -340,8 +326,99 @@
       <div class="panel-body">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>NO</th><th>거래처명</th><th>사업자번호</th><th>대표자</th><th>담당자</th><th>연락처</th><th>이메일</th><th>미수잔액</th><th>관리</th></tr></thead>
+            <thead><tr><th>NO</th><th>거래처명</th><th>사업자번호</th><th>대표자</th><th>영업담당자</th><th>결제조건</th><th>연락처</th><th>미수잔액</th><th>관리</th></tr></thead>
             <tbody id="custBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div id="custImportPreview" style="display:none">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">📋 업로드 미리보기</span>
+          <div style="display:flex;gap:8px;">
+            <span id="custImportCount" style="font-size:13px;color:#6b7280;align-self:center;"></span>
+            <button class="btn btn-success btn-sm" onclick="confirmCustImport()">✅ 가져오기</button>
+            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('custImportPreview').style.display='none'">취소</button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>거래처명</th><th>사업자번호</th><th>대표자</th><th>수금담당자</th><th>결제조건</th><th>전화번호</th><th>이메일</th><th>주소</th></tr></thead>
+              <tbody id="custImportBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== IMPORT ===== -->
+  <div class="section" id="section-import">
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">📂 ERP 엑셀 업로드</span></div>
+      <div class="panel-body">
+        <div style="border:2px dashed #d1d5db; border-radius:10px; padding:32px; text-align:center; margin-bottom:20px;">
+          <div style="font-size:36px; margin-bottom:8px;">📊</div>
+          <div style="font-size:14px; color:#6b7280; margin-bottom:16px;">ERP에서 다운받은 엑셀 파일을 업로드하세요</div>
+          <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none" onchange="handleExcelUpload(event)">
+          <button class="btn btn-primary" onclick="document.getElementById('excelFileInput').click()">📂 파일 선택</button>
+          <div style="font-size:12px; color:#9ca3af; margin-top:8px;">지원 형식: .xlsx, .xls</div>
+        </div>
+        <div id="importPreview" style="display:none">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <span id="importCount" style="font-weight:700; color:#111827;"></span>
+            <button class="btn btn-success" onclick="confirmImport()">✅ 가져오기</button>
+          </div>
+          <div class="table-wrap">
+            <table id="importTable">
+              <thead><tr>
+                <th>발생일자</th><th>거래처</th><th>금액</th><th>영업담당자</th><th>입금예정일</th>
+              </tr></thead>
+              <tbody id="importBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== COMPLETED ===== -->
+  <div class="section" id="section-completed">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">✅ 완료 내역</span>
+        <span id="completed-count" style="font-size:12px;color:#6b7280;"></span>
+      </div>
+      <div class="panel-body">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>NO</th><th>거래처</th><th>발생일</th><th>입금예정일</th><th>구분</th>
+                <th class="text-right">금액</th><th>영업담당자</th><th>비고</th><th>관리</th>
+              </tr>
+            </thead>
+            <tbody id="completedBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LOG ===== -->
+  <div class="section" id="section-log">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">📜 작업 로그</span>
+        <button class="btn btn-secondary btn-sm" onclick="loadLogs()">🔄 새로고침</button>
+      </div>
+      <div class="panel-body">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>일시</th><th>작업자</th><th>작업유형</th><th>내용</th></tr></thead>
+            <tbody id="logBody"></tbody>
           </table>
         </div>
       </div>
@@ -395,26 +472,63 @@
   </div>
 </div>
 
+<!-- CUSTOMER EDIT MODAL -->
+<div class="modal-overlay" id="custEditModal">
+  <div class="modal">
+    <h3>✏️ 거래처 수정</h3>
+    <input type="hidden" id="cedit_id">
+    <div class="form-grid">
+      <div class="form-group"><label>거래처명 *</label><input type="text" id="cedit_name"></div>
+      <div class="form-group"><label>사업자번호</label><input type="text" id="cedit_regnum"></div>
+      <div class="form-group"><label>대표자</label><input type="text" id="cedit_ceo"></div>
+      <div class="form-group"><label>영업담당자</label><input type="text" id="cedit_mgr"></div>
+      <div class="form-group"><label>결제조건 (일)</label><input type="number" id="cedit_terms" min="0"></div>
+      <div class="form-group"><label>연락처</label><input type="text" id="cedit_tel"></div>
+      <div class="form-group"><label>이메일</label><input type="email" id="cedit_email"></div>
+      <div class="form-group full"><label>주소</label><input type="text" id="cedit_addr"></div>
+      <div class="form-group full"><label>비고</label><input type="text" id="cedit_memo"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveCustEdit()">저장</button>
+      <button class="btn btn-secondary" onclick="closeModal('custEditModal')">취소</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
+// ============================================================
+// SUPABASE
+// ============================================================
+const { createClient } = supabase
+const supabaseClient = createClient(
+  'https://neotknumvczrtccqebbg.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5lb3RrbnVtdmN6cnRjY3FlYmJnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MTMyOTQsImV4cCI6MjA5NDA4OTI5NH0.JBq6zx4hwHxvdzYGEzETigFi6JiQE5QCpyJE8d3FLA0'
+)
+
 // ============================================================
 // DATA STORE
 // ============================================================
 let db = {
   customers: [],
   receivables: [],
-  payments: [],
   nextCustId: 1,
-  nextRecId: 1,
-  nextPayId: 1
+  nextRecId: 1
 };
 
-function save() { localStorage.setItem('misugeum_db', JSON.stringify(db)); }
-function load() {
-  const d = localStorage.getItem('misugeum_db');
-  if (d) db = JSON.parse(d);
+async function save() {
+  localStorage.setItem('misugeum_db', JSON.stringify(db));
+  const { error } = await supabaseClient.from('misugeum_data').upsert({ id: 1, data: db });
+  if (error) console.error('저장 오류:', error.message);
+}
+
+async function load() {
+  const { data, error } = await supabaseClient.from('misugeum_data').select('data').eq('id', 1).maybeSingle();
+  if (data && data.data) { db = data.data; return; }
+  const local = localStorage.getItem('misugeum_db');
+  if (local) db = JSON.parse(local);
 }
 
 // ============================================================
@@ -436,9 +550,8 @@ function overdueBadge(days) {
   return `<span class="badge badge-red">D+${days}</span>`;
 }
 function statusBadge(status) {
-  if (status === '완납') return '<span class="badge badge-green">완납</span>';
-  if (status === '일부입금') return '<span class="badge badge-blue">일부입금</span>';
-  return '<span class="badge badge-red">미수</span>';
+  if (status === '연체') return '<span class="badge badge-red">연체</span>';
+  return '<span class="badge badge-green">정상</span>';
 }
 
 function showToast(msg, type = 'success') {
@@ -449,18 +562,17 @@ function showToast(msg, type = 'success') {
   setTimeout(() => el.remove(), 3000);
 }
 
-function getRecBalance(rec) {
-  const paid = db.payments.filter(p => p.recId === rec.id).reduce((s, p) => s + p.amount, 0);
-  return rec.amount - paid;
-}
-function getRecPaid(rec) {
-  return db.payments.filter(p => p.recId === rec.id).reduce((s, p) => s + p.amount, 0);
-}
-function getRecStatus(rec) {
-  const bal = getRecBalance(rec);
-  if (bal <= 0) return '완납';
-  if (bal < rec.amount) return '일부입금';
-  return '미수';
+function getRecBalance(rec) { return rec.amount; }
+function getRecStatus(rec) { return overdueDays(rec.duedate) > 0 ? '연체' : '정상'; }
+
+function getPaymentStatus(rec) {
+  const due = rec.payment_due || rec.duedate;
+  if (!due) return 'normal';
+  const diff = Math.floor((new Date(due) - new Date(today())) / 86400000);
+  if (diff < 0) return 'overdue';
+  if (diff === 0) return 'today';
+  if (diff <= 3) return 'soon';
+  return 'normal';
 }
 
 // ============================================================
@@ -472,11 +584,12 @@ function showSection(name, el) {
   document.getElementById('section-' + name).classList.add('active');
   el.classList.add('active');
   if (name === 'dashboard') renderDashboard();
-  if (name === 'ledger') { populateRegCustomer(); renderLedger(); }
-  if (name === 'payment') { populatePaySelect(); renderPayHistory(); }
+  if (name === 'ledger') renderLedger();
   if (name === 'customer') renderCustomers();
-  if (name === 'register') populateRegCustomer();
   if (name === 'report') renderReport();
+  if (name === 'import') { document.getElementById('importPreview').style.display='none'; document.getElementById('excelFileInput').value=''; }
+  if (name === 'completed') renderCompleted();
+  if (name === 'log') loadLogs();
 }
 
 // ============================================================
@@ -485,22 +598,38 @@ function showSection(name, el) {
 function renderDashboard() {
   const recs = db.receivables;
   const total = recs.reduce((s, r) => s + r.amount, 0);
-  const totalPaid = recs.reduce((s, r) => s + getRecPaid(r), 0);
-  const totalBal = recs.reduce((s, r) => s + getRecBalance(r), 0);
-  const overdueRecs = recs.filter(r => getRecStatus(r) !== '완납' && overdueDays(r.duedate) > 0);
-  const overdueAmt = overdueRecs.reduce((s, r) => s + getRecBalance(r), 0);
+  const overdueRecs = recs.filter(r => overdueDays(r.duedate) > 0);
+  const overdueAmt = overdueRecs.reduce((s, r) => s + r.amount, 0);
+  const custCount = new Set(recs.map(r => r.customer)).size;
 
   document.getElementById('dashCards').innerHTML = `
-    <div class="card blue"><div class="card-label">총 청구금액</div><div class="card-value">${fmtn(total)}</div><div class="card-sub">전체 ${recs.length}건</div></div>
-    <div class="card green"><div class="card-label">총 입금액</div><div class="card-value">${fmtn(totalPaid)}</div><div class="card-sub">회수율 ${total ? (totalPaid/total*100).toFixed(1) : 0}%</div></div>
-    <div class="card red"><div class="card-label">미수 잔액</div><div class="card-value">${fmtn(totalBal)}</div><div class="card-sub">${recs.filter(r=>getRecStatus(r)!=='완납').length}건 미수</div></div>
-    <div class="card orange"><div class="card-label">연체 금액</div><div class="card-value">${fmtn(overdueAmt)}</div><div class="card-sub">${overdueRecs.length}건 연체 중</div></div>
+    <div class="card blue"><div class="card-label">총 미수금액</div><div class="card-value">${fmtn(total)}</div><div class="card-sub">전체 ${recs.length}건</div></div>
+    <div class="card green"><div class="card-label">거래처 수</div><div class="card-value">${custCount}</div><div class="card-sub">미수 거래처</div></div>
+    <div class="card red"><div class="card-label">연체 금액</div><div class="card-value">${fmtn(overdueAmt)}</div><div class="card-sub">${overdueRecs.length}건 연체 중</div></div>
+    <div class="card orange"><div class="card-label">정상 금액</div><div class="card-value">${fmtn(total - overdueAmt)}</div><div class="card-sub">${recs.length - overdueRecs.length}건 정상</div></div>
   `;
+
+  // 입금예정일 현황
+  const active = recs.filter(r => !r.completed);
+  const sOverdue = active.filter(r => getPaymentStatus(r) === 'overdue');
+  const sToday   = active.filter(r => getPaymentStatus(r) === 'today');
+  const sSoon    = active.filter(r => getPaymentStatus(r) === 'soon');
+  const sNormal  = active.filter(r => getPaymentStatus(r) === 'normal');
+  document.getElementById('statusSummaryPanel').innerHTML = `
+    <table style="width:100%">
+      <thead><tr><th>상태</th><th>색</th><th class="text-center">건수</th><th class="text-right">금액</th></tr></thead>
+      <tbody>
+        <tr><td><span class="status-dot dot-red"></span>연체</td><td style="color:#ef4444;font-weight:700;">빨강</td><td class="text-center">${sOverdue.length}건</td><td class="text-right amount" style="color:#ef4444">${fmtn(sOverdue.reduce((s,r)=>s+r.amount,0))}</td></tr>
+        <tr><td><span class="status-dot dot-blue"></span>오늘 예정</td><td style="color:#2563eb;font-weight:700;">파랑</td><td class="text-center">${sToday.length}건</td><td class="text-right amount" style="color:#2563eb">${fmtn(sToday.reduce((s,r)=>s+r.amount,0))}</td></tr>
+        <tr><td><span class="status-dot dot-yellow"></span>3일 이내</td><td style="color:#eab308;font-weight:700;">노랑</td><td class="text-center">${sSoon.length}건</td><td class="text-right amount" style="color:#eab308">${fmtn(sSoon.reduce((s,r)=>s+r.amount,0))}</td></tr>
+        <tr><td><span class="status-dot dot-green"></span>정상</td><td style="color:#22c55e;font-weight:700;">초록</td><td class="text-center">${sNormal.length}건</td><td class="text-right amount" style="color:#22c55e">${fmtn(sNormal.reduce((s,r)=>s+r.amount,0))}</td></tr>
+      </tbody>
+    </table>`;
 
   // Top 5
   const custBal = {};
-  recs.filter(r=>getRecStatus(r)!=='완납').forEach(r => {
-    custBal[r.customer] = (custBal[r.customer] || 0) + getRecBalance(r);
+  recs.forEach(r => {
+    custBal[r.customer] = (custBal[r.customer] || 0) + r.amount;
   });
   const top5 = Object.entries(custBal).sort((a,b)=>b[1]-a[1]).slice(0,5);
   document.getElementById('top5Panel').innerHTML = top5.length ? `
@@ -509,37 +638,24 @@ function renderDashboard() {
       <tbody>${top5.map(([c,v])=>`<tr><td>${c}</td><td class="text-right amount" style="color:#ef4444">${fmtn(v)}</td></tr>`).join('')}</tbody>
     </table>` : '<div class="empty-state"><div class="icon">✅</div><div>미수금이 없습니다</div></div>';
 
-  // Recent payments
-  const recentPay = [...db.payments].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
-  document.getElementById('recentPayPanel').innerHTML = recentPay.length ? `
-    <table style="width:100%">
-      <thead><tr><th>입금일</th><th>거래처</th><th class="text-right">입금액</th></tr></thead>
-      <tbody>${recentPay.map(p=>{
-        const r = db.receivables.find(x=>x.id===p.recId);
-        return `<tr><td>${p.date}</td><td>${r?r.customer:'-'}</td><td class="text-right amount" style="color:#22c55e">${fmtn(p.amount)}</td></tr>`;
-      }).join('')}</tbody>
-    </table>` : '<div class="empty-state"><div class="icon">💳</div><div>입금 내역이 없습니다</div></div>';
 
   // Summary table by customer
   const custSummary = {};
   recs.forEach(r => {
-    if (!custSummary[r.customer]) custSummary[r.customer] = {cnt:0, amt:0, paid:0, bal:0};
+    if (!custSummary[r.customer]) custSummary[r.customer] = {cnt:0, amt:0, overdue:0};
     custSummary[r.customer].cnt++;
     custSummary[r.customer].amt += r.amount;
-    custSummary[r.customer].paid += getRecPaid(r);
-    custSummary[r.customer].bal += getRecBalance(r);
+    if (overdueDays(r.duedate) > 0) custSummary[r.customer].overdue += r.amount;
   });
   const rows = Object.entries(custSummary).map(([c,v])=>`
     <tr>
       <td>${c}</td><td class="text-center">${v.cnt}</td>
-      <td class="text-right amount">${fmtn(v.amt)}</td>
-      <td class="text-right amount" style="color:#22c55e">${fmtn(v.paid)}</td>
-      <td class="text-right amount" style="color:#ef4444">${fmtn(v.bal)}</td>
-      <td class="text-center">${v.amt?(v.paid/v.amt*100).toFixed(1):0}%</td>
+      <td class="text-right amount" style="color:#ef4444">${fmtn(v.amt)}</td>
+      <td class="text-right amount" style="color:#f97316">${fmtn(v.overdue)}</td>
     </tr>`).join('');
   document.getElementById('summaryTable').innerHTML = rows ? `
-    <thead><tr><th>거래처</th><th class="text-center">건수</th><th class="text-right">청구액</th><th class="text-right">입금액</th><th class="text-right">미수잔액</th><th class="text-center">회수율</th></tr></thead>
-    <tbody>${rows}</tbody>` : '<thead></thead><tbody><tr><td colspan="6"><div class="empty-state"><div class="icon">📋</div><div>데이터가 없습니다</div></div></td></tr></tbody>';
+    <thead><tr><th>거래처</th><th class="text-center">건수</th><th class="text-right">미수잔액</th><th class="text-right">연체금액</th></tr></thead>
+    <tbody>${rows}</tbody>` : '<thead></thead><tbody><tr><td colspan="4"><div class="empty-state"><div class="icon">📋</div><div>데이터가 없습니다</div></div></td></tr></tbody>';
 }
 
 // ============================================================
@@ -554,95 +670,209 @@ function addCustomer() {
     regnum: document.getElementById('cust_regnum').value,
     ceo: document.getElementById('cust_ceo').value,
     mgr: document.getElementById('cust_mgr').value,
+    terms: parseInt(document.getElementById('cust_terms').value) || 0,
     tel: document.getElementById('cust_tel').value,
     email: document.getElementById('cust_email').value,
     addr: document.getElementById('cust_addr').value,
     memo: document.getElementById('cust_memo').value
   });
-  save(); clearCustForm(); renderCustomers(); populateRegCustomer(); populatePaySelect();
+  save(); clearCustForm(); renderCustomers();
   showToast('거래처가 등록되었습니다');
 }
 
 function clearCustForm() {
-  ['cust_name','cust_regnum','cust_ceo','cust_mgr','cust_tel','cust_email','cust_addr','cust_memo'].forEach(id => document.getElementById(id).value='');
+  ['cust_name','cust_regnum','cust_ceo','cust_mgr','cust_terms','cust_tel','cust_email','cust_addr','cust_memo'].forEach(id => document.getElementById(id).value='');
 }
 
 function renderCustomers() {
   const rows = db.customers.map((c,i) => {
-    const bal = db.receivables.filter(r=>r.customer===c.name).reduce((s,r)=>s+getRecBalance(r),0);
+    const bal = db.receivables.filter(r=>r.customer===c.name).reduce((s,r)=>s+r.amount,0);
     return `<tr>
       <td>${i+1}</td><td><b>${c.name}</b></td><td>${c.regnum||'-'}</td><td>${c.ceo||'-'}</td>
-      <td>${c.mgr||'-'}</td><td>${c.tel||'-'}</td><td>${c.email||'-'}</td>
-      <td class="text-right amount" style="color:${bal>0?'#ef4444':'#22c55e'}">${fmtn(bal)}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteCustomer(${c.id})">삭제</button></td>
+      <td>${c.mgr||'-'}</td><td>${c.terms ? c.terms+'일' : '-'}</td><td>${c.tel||'-'}</td>
+      <td class="text-right amount" style="color:#ef4444">${fmtn(bal)}</td>
+      <td>
+        <button class="btn btn-secondary btn-sm" onclick="openCustEdit(${c.id})">수정</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${c.id})">삭제</button>
+      </td>
     </tr>`;
   }).join('');
   document.getElementById('custBody').innerHTML = rows || '<tr><td colspan="9"><div class="empty-state"><div class="icon">🏢</div><div>등록된 거래처가 없습니다</div></div></td></tr>';
 }
 
+function openCustEdit(id) {
+  const c = db.customers.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('cedit_id').value    = id;
+  document.getElementById('cedit_name').value  = c.name || '';
+  document.getElementById('cedit_regnum').value = c.regnum || '';
+  document.getElementById('cedit_ceo').value   = c.ceo || '';
+  document.getElementById('cedit_mgr').value   = c.mgr || '';
+  document.getElementById('cedit_terms').value = c.terms || '';
+  document.getElementById('cedit_tel').value   = c.tel || '';
+  document.getElementById('cedit_email').value = c.email || '';
+  document.getElementById('cedit_addr').value  = c.addr || '';
+  document.getElementById('cedit_memo').value  = c.memo || '';
+  document.getElementById('custEditModal').classList.add('open');
+}
+
+async function saveCustEdit() {
+  const id = parseInt(document.getElementById('cedit_id').value);
+  const c = db.customers.find(x => x.id === id);
+  if (!c) return;
+  const newName = document.getElementById('cedit_name').value.trim();
+  if (!newName) { showToast('거래처명을 입력하세요', 'error'); return; }
+  const oldName = c.name;
+  c.name   = newName;
+  c.regnum = document.getElementById('cedit_regnum').value;
+  c.ceo    = document.getElementById('cedit_ceo').value;
+  c.mgr    = document.getElementById('cedit_mgr').value;
+  c.terms  = parseInt(document.getElementById('cedit_terms').value) || 0;
+  c.tel    = document.getElementById('cedit_tel').value;
+  c.email  = document.getElementById('cedit_email').value;
+  c.addr   = document.getElementById('cedit_addr').value;
+  c.memo   = document.getElementById('cedit_memo').value;
+  db.receivables.forEach(r => {
+    if (r.customer === oldName) {
+      if (oldName !== newName) r.customer = newName;
+      r.sales_manager = c.mgr || '';
+      r.payment_due   = c.terms ? addDays(r.date, c.terms) : '';
+    }
+  });
+  await save();
+  await writeLog('거래처 수정', `${oldName}${oldName !== newName ? ' → ' + newName : ''} / 미수금 반영 완료`);
+  closeModal('custEditModal');
+  renderCustomers();
+  showToast('수정되었습니다 (미수금 대장에도 반영)');
+}
+
 function deleteCustomer(id) {
   if (!confirm('거래처를 삭제하시겠습니까?')) return;
   db.customers = db.customers.filter(c=>c.id!==id);
-  save(); renderCustomers(); populateRegCustomer();
+  save(); renderCustomers();
   showToast('삭제되었습니다', 'info');
 }
 
-function populateRegCustomer() {
+function populateEditCustomer() {
   const opts = '<option value="">-- 거래처 선택 --</option>' + db.customers.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
-  ['reg_customer','edit_customer'].forEach(id => { const el=document.getElementById(id); if(el) el.innerHTML=opts; });
-}
-
-function fillCustomerInfo() {
-  const name = document.getElementById('reg_customer').value;
-  const c = db.customers.find(x=>x.name===name);
-  if (c) {
-    document.getElementById('reg_manager').value = c.mgr || '';
-    document.getElementById('reg_contact').value = c.tel || '';
-  }
+  const el = document.getElementById('edit_customer'); if(el) el.innerHTML=opts;
 }
 
 // ============================================================
 // RECEIVABLE
 // ============================================================
-function addReceivable() {
-  const customer = document.getElementById('reg_customer').value;
-  const date = document.getElementById('reg_date').value;
-  const duedate = document.getElementById('reg_duedate').value;
-  const amount = parseFloat(document.getElementById('reg_amount').value);
-  if (!customer) { showToast('거래처를 선택하세요', 'error'); return; }
-  if (!date) { showToast('발생일을 입력하세요', 'error'); return; }
-  if (!duedate) { showToast('만기일을 입력하세요', 'error'); return; }
-  if (!amount || amount <= 0) { showToast('청구금액을 입력하세요', 'error'); return; }
+// ============================================================
+// BULK ACTIONS
+// ============================================================
+function getCheckedIds() {
+  return [...document.querySelectorAll('.row-check:checked')].map(el => parseInt(el.value));
+}
 
-  db.receivables.push({
-    id: db.nextRecId++, customer, date, duedate, amount,
-    type: document.getElementById('reg_type').value,
-    manager: document.getElementById('reg_manager').value,
-    contact: document.getElementById('reg_contact').value,
-    docno: document.getElementById('reg_docno').value,
-    memo: document.getElementById('reg_memo').value
+function onCheckChange() {
+  const ids = getCheckedIds();
+  const bulkEl = document.getElementById('bulkActions');
+  if (ids.length > 0) {
+    bulkEl.style.display = 'flex';
+    document.getElementById('checkedCount').textContent = `${ids.length}건 선택됨`;
+  } else {
+    bulkEl.style.display = 'none';
+  }
+  const all = document.querySelectorAll('.row-check');
+  document.getElementById('checkAll').checked = all.length > 0 && ids.length === all.length;
+}
+
+function toggleCheckAll(el) {
+  document.querySelectorAll('.row-check').forEach(c => c.checked = el.checked);
+  onCheckChange();
+}
+
+function clearChecks() {
+  document.querySelectorAll('.row-check').forEach(c => c.checked = false);
+  const ca = document.getElementById('checkAll');
+  if (ca) ca.checked = false;
+  document.getElementById('bulkActions').style.display = 'none';
+}
+
+async function bulkComplete() {
+  const ids = getCheckedIds();
+  if (!ids.length) return;
+  if (!confirm(`${ids.length}건을 완료 처리하시겠습니까?`)) return;
+  ids.forEach(id => {
+    const r = db.receivables.find(x => x.id === id);
+    if (r) { r.completed = true; r.completedAt = today(); }
   });
-  save(); clearRegForm(); populatePaySelect();
-  showToast('미수금이 등록되었습니다');
+  await save();
+  await writeLog('일괄 완료', `${ids.length}건 완료 처리`);
+  clearChecks();
+  renderLedger(); renderDashboard();
+  showToast(`${ids.length}건 완료 처리되었습니다`);
 }
 
-function clearRegForm() {
-  ['reg_customer','reg_date','reg_duedate','reg_amount','reg_manager','reg_contact','reg_docno','reg_memo'].forEach(id => document.getElementById(id).value='');
-  document.getElementById('reg_date').value = today();
+async function bulkDelete() {
+  const ids = getCheckedIds();
+  if (!ids.length) return;
+  if (!confirm(`${ids.length}건을 삭제하시겠습니까?`)) return;
+  db.receivables = db.receivables.filter(r => !ids.includes(r.id));
+  await save();
+  await writeLog('일괄 삭제', `${ids.length}건 삭제`);
+  clearChecks();
+  renderLedger(); renderDashboard();
+  showToast(`${ids.length}건 삭제되었습니다`, 'info');
 }
 
-function deleteReceivable(id) {
-  if (!confirm('미수금을 삭제하시겠습니까?\n관련 입금 이력도 삭제됩니다.')) return;
-  db.receivables = db.receivables.filter(r=>r.id!==id);
-  db.payments = db.payments.filter(p=>p.recId!==id);
-  save(); renderLedger(); populatePaySelect();
+async function markComplete(id) {
+  const r = db.receivables.find(x => x.id === id);
+  if (!r || !confirm(`[${r.customer}] 완료 처리하시겠습니까?`)) return;
+  r.completed = true;
+  r.completedAt = today();
+  await save();
+  await writeLog('완료 처리', `${r.customer} / ${fmtn(r.amount)}원`);
+  renderLedger(); renderDashboard();
+  showToast('완료 처리되었습니다', 'success');
+}
+
+async function restoreReceivable(id) {
+  const r = db.receivables.find(x => x.id === id);
+  if (!r) return;
+  r.completed = false;
+  r.completedAt = '';
+  await save();
+  await writeLog('완료 복원', `${r.customer} / ${fmtn(r.amount)}원`);
+  renderCompleted(); renderDashboard();
+  showToast('미수금 대장으로 복원되었습니다', 'info');
+}
+
+function renderCompleted() {
+  const recs = db.receivables.filter(r => r.completed).sort((a,b) => (b.completedAt||'').localeCompare(a.completedAt||''));
+  document.getElementById('completed-count').textContent = `총 ${recs.length}건`;
+  const totalAmt = recs.reduce((s,r) => s + r.amount, 0);
+  const rows = recs.map((r,i) => `
+    <tr>
+      <td>${i+1}</td><td><b>${r.customer}</b></td><td>${r.date}</td>
+      <td>${r.payment_due||'-'}</td><td><span class="badge badge-gray">${r.type}</span></td>
+      <td class="text-right amount" style="color:#22c55e">${fmtn(r.amount)}</td>
+      <td>${r.sales_manager||'-'}</td>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.memo||'-'}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="restoreReceivable(${r.id})">복원</button></td>
+    </tr>`).join('');
+  document.getElementById('completedBody').innerHTML = rows ||
+    `<tr><td colspan="9"><div class="empty-state"><div class="icon">✅</div><div>완료 내역이 없습니다</div></div></td></tr>`;
+}
+
+async function deleteReceivable(id) {
+  const r = db.receivables.find(x=>x.id===id);
+  if (!confirm('미수금을 삭제하시겠습니까?')) return;
+  db.receivables = db.receivables.filter(x=>x.id!==id);
+  await save();
+  await writeLog('미수금 삭제', `${r?.customer||''} / ${r?.date||''} / ${fmtn(r?.amount||0)}원`);
+  renderLedger();
   showToast('삭제되었습니다', 'info');
 }
 
 function openEdit(id) {
   const r = db.receivables.find(x=>x.id===id);
   if (!r) return;
-  populateRegCustomer();
+  populateEditCustomer();
   document.getElementById('edit_id').value = id;
   document.getElementById('edit_customer').value = r.customer;
   document.getElementById('edit_date').value = r.date;
@@ -686,7 +916,7 @@ function renderLedger() {
   const from = document.getElementById('f_from').value;
   const to = document.getElementById('f_to').value;
 
-  let recs = [...db.receivables].sort((a,b)=>b.date.localeCompare(a.date));
+  let recs = [...db.receivables].filter(r=>!r.completed).sort((a,b)=>b.date.localeCompare(a.date));
 
   if (search) recs = recs.filter(r => r.customer.toLowerCase().includes(search) || (r.memo||'').toLowerCase().includes(search) || (r.docno||'').toLowerCase().includes(search));
   if (status) recs = recs.filter(r => getRecStatus(r) === status);
@@ -698,36 +928,34 @@ function renderLedger() {
 
   document.getElementById('ledger-count').textContent = `총 ${recs.length}건`;
 
-  let totalAmt = 0, totalPaid = 0, totalBal = 0;
+  let totalAmt = 0;
   const rows = recs.map((r, i) => {
-    const paid = getRecPaid(r);
-    const bal = getRecBalance(r);
     const st = getRecStatus(r);
-    const od = st !== '완납' ? overdueDays(r.duedate) : 0;
-    totalAmt += r.amount; totalPaid += paid; totalBal += bal;
-    const cls = od > 90 ? 'overdue-high' : od > 0 ? 'overdue-med' : '';
+    const od = overdueDays(r.duedate);
+    const ps = getPaymentStatus(r);
+    totalAmt += r.amount;
+    const cls = ps === 'overdue' ? 'status-overdue' : ps === 'today' ? 'status-today' : ps === 'soon' ? 'status-soon' : '';
     return `<tr class="${cls}">
+      <td><input type="checkbox" class="row-check" value="${r.id}" onchange="onCheckChange()"></td>
       <td>${i+1}</td>
       <td><b>${r.customer}</b></td>
       <td>${r.date}</td>
-      <td>${r.duedate}</td>
+      <td>${r.payment_due||'-'}</td>
       <td><span class="badge badge-gray">${r.type}</span></td>
-      <td class="text-right amount">${fmtn(r.amount)}</td>
-      <td class="text-right amount" style="color:#22c55e">${fmtn(paid)}</td>
-      <td class="text-right amount" style="color:${bal>0?'#ef4444':'#22c55e'}">${fmtn(bal)}</td>
+      <td class="text-right amount" style="color:#ef4444">${fmtn(r.amount)}</td>
       <td class="text-center">${overdueBadge(od)}</td>
       <td>${statusBadge(st)}</td>
-      <td>${r.manager||'-'}</td>
+      <td>${r.sales_manager||'-'}</td>
       <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.memo||''}">${r.memo||'-'}</td>
       <td>
-        <button class="btn btn-secondary btn-sm" onclick="openEdit(${r.id})">수정</button>
+        <button class="btn btn-success btn-sm" onclick="markComplete(${r.id})">완료</button>
         <button class="btn btn-danger btn-sm" onclick="deleteReceivable(${r.id})">삭제</button>
       </td>
     </tr>`;
   }).join('');
 
-  document.getElementById('ledgerBody').innerHTML = rows || `<tr><td colspan="13"><div class="empty-state"><div class="icon">📋</div><div>데이터가 없습니다</div></div></td></tr>`;
-  document.getElementById('ledger-total').innerHTML = `합계 — 청구: <span style="color:#2563eb">${fmtn(totalAmt)}</span> | 입금: <span style="color:#22c55e">${fmtn(totalPaid)}</span> | 미수잔액: <span style="color:#ef4444">${fmtn(totalBal)}</span>`;
+  document.getElementById('ledgerBody').innerHTML = rows || `<tr><td colspan="11"><div class="empty-state"><div class="icon">📋</div><div>데이터가 없습니다</div></div></td></tr>`;
+  document.getElementById('ledger-total').innerHTML = `합계 — 미수잔액: <span style="color:#ef4444">${fmtn(totalAmt)}</span>`;
 }
 
 function clearFilters() {
@@ -736,96 +964,6 @@ function clearFilters() {
   renderLedger();
 }
 
-// ============================================================
-// PAYMENT
-// ============================================================
-function populatePaySelect() {
-  const open = db.receivables.filter(r => getRecStatus(r) !== '완납').sort((a,b)=>a.duedate.localeCompare(b.duedate));
-  const opts = '<option value="">-- 미수금 선택 --</option>' + open.map(r => {
-    const od = overdueDays(r.duedate);
-    return `<option value="${r.id}">[${r.customer}] ${r.date} / 잔액: ${fmtn(getRecBalance(r))}${od>0?' (연체'+od+'일)':''}</option>`;
-  }).join('');
-  document.getElementById('pay_receivable').innerHTML = opts;
-  document.getElementById('pay_amount').value = '';
-  document.getElementById('pay_remain').value = '';
-}
-
-function onSelectReceivable() {
-  const id = parseInt(document.getElementById('pay_receivable').value);
-  const r = db.receivables.find(x=>x.id===id);
-  if (r) {
-    const bal = getRecBalance(r);
-    document.getElementById('pay_amount').value = bal;
-    document.getElementById('pay_remain').value = '0원 (완납 예정)';
-  } else {
-    document.getElementById('pay_amount').value = '';
-    document.getElementById('pay_remain').value = '';
-  }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('pay_amount').addEventListener('input', function() {
-    const id = parseInt(document.getElementById('pay_receivable').value);
-    const r = db.receivables.find(x=>x.id===id);
-    if (r) {
-      const bal = getRecBalance(r);
-      const paying = parseFloat(this.value) || 0;
-      const remain = bal - paying;
-      document.getElementById('pay_remain').value = remain <= 0 ? '0원 (완납)' : fmtn(remain) + '원';
-    }
-  });
-});
-
-function processPayment() {
-  const recId = parseInt(document.getElementById('pay_receivable').value);
-  const date = document.getElementById('pay_date').value;
-  const amount = parseFloat(document.getElementById('pay_amount').value);
-  const method = document.getElementById('pay_method').value;
-  const memo = document.getElementById('pay_memo').value;
-
-  if (!recId) { showToast('미수금을 선택하세요', 'error'); return; }
-  if (!date) { showToast('입금일을 입력하세요', 'error'); return; }
-  if (!amount || amount <= 0) { showToast('입금액을 입력하세요', 'error'); return; }
-
-  const r = db.receivables.find(x=>x.id===recId);
-  if (!r) return;
-  const bal = getRecBalance(r);
-  if (amount > bal) { showToast(`잔액(${fmtn(bal)}원)을 초과할 수 없습니다`, 'error'); return; }
-
-  db.payments.push({ id: db.nextPayId++, recId, date, amount, method, memo });
-  save(); clearPayForm(); populatePaySelect(); renderPayHistory();
-  showToast(`입금 처리 완료 (${fmtn(amount)}원)`);
-}
-
-function clearPayForm() {
-  document.getElementById('pay_date').value = today();
-  document.getElementById('pay_amount').value = '';
-  document.getElementById('pay_remain').value = '';
-  document.getElementById('pay_memo').value = '';
-}
-
-function renderPayHistory() {
-  const rows = [...db.payments].sort((a,b)=>b.date.localeCompare(a.date)).map(p => {
-    const r = db.receivables.find(x=>x.id===p.recId);
-    return `<tr>
-      <td>${p.date}</td>
-      <td>${r?r.customer:'-'}</td>
-      <td><span class="badge badge-gray">${r?r.type:'-'}</span></td>
-      <td class="text-right amount" style="color:#22c55e">${fmtn(p.amount)}</td>
-      <td>${p.method}</td>
-      <td>${p.memo||'-'}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="deletePayment(${p.id})">취소</button></td>
-    </tr>`;
-  }).join('');
-  document.getElementById('payHistBody').innerHTML = rows || `<tr><td colspan="7"><div class="empty-state"><div class="icon">💳</div><div>입금 이력이 없습니다</div></div></td></tr>`;
-}
-
-function deletePayment(id) {
-  if (!confirm('입금 이력을 삭제하시겠습니까?')) return;
-  db.payments = db.payments.filter(p=>p.id!==id);
-  save(); renderPayHistory(); populatePaySelect();
-  showToast('입금 취소 처리되었습니다', 'info');
-}
 
 // ============================================================
 // REPORT
@@ -906,6 +1044,251 @@ function renderReport() {
 }
 
 // ============================================================
+// WORKER & LOG
+// ============================================================
+let currentWorker = localStorage.getItem('misugeum_worker') || '';
+
+function initWorker() {
+  if (!currentWorker) {
+    currentWorker = prompt('작업자 이름을 입력하세요:') || '미입력';
+    localStorage.setItem('misugeum_worker', currentWorker);
+  }
+  document.getElementById('workerName').textContent = currentWorker;
+}
+
+function changeWorker() {
+  const name = prompt('작업자 이름을 변경하세요:', currentWorker);
+  if (name) {
+    currentWorker = name.trim();
+    localStorage.setItem('misugeum_worker', currentWorker);
+    document.getElementById('workerName').textContent = currentWorker;
+  }
+}
+
+async function writeLog(actionType, detail) {
+  await supabaseClient.from('misugeum_logs').insert({
+    worker: currentWorker,
+    action_type: actionType,
+    detail: detail
+  });
+}
+
+async function loadLogs() {
+  const { data } = await supabaseClient.from('misugeum_logs').select('*').order('created_at', { ascending: false }).limit(100);
+  if (!data) return;
+  document.getElementById('logBody').innerHTML = data.map(l => `
+    <tr>
+      <td style="white-space:nowrap">${new Date(l.created_at).toLocaleString('ko-KR')}</td>
+      <td><b>${l.worker||'-'}</b></td>
+      <td><span class="badge badge-blue">${l.action_type||'-'}</span></td>
+      <td>${l.detail||'-'}</td>
+    </tr>`).join('') || '<tr><td colspan="4"><div class="empty-state"><div class="icon">📜</div><div>로그가 없습니다</div></div></td></tr>';
+}
+
+// ============================================================
+// CUSTOMER EXCEL IMPORT
+// ============================================================
+let custImportData = [];
+
+function handleCustExcelUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const workbook = XLSX.read(e.target.result, { type: 'array' });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+
+    let headerIdx = -1;
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i].some(c => String(c).includes('거래처명'))) { headerIdx = i; break; }
+    }
+    if (headerIdx === -1) { showToast('거래처명 헤더를 찾을 수 없습니다', 'error'); return; }
+
+    const headers = rows[headerIdx].map(h => String(h).trim());
+    const idx = (name) => headers.findIndex(h => h.includes(name));
+
+    const iName   = idx('거래처명');
+    const iRegnum = idx('사업자번호');
+    const iCeo    = idx('대표자');
+    const iMgr    = idx('수금담당자');
+    const iTerms  = idx('결제조건');
+    const iTel    = idx('전화번호');
+    const iEmail  = idx('이메일');
+    const iAddr   = idx('주소');
+    const iFax    = idx('fax') !== -1 ? idx('fax') : idx('FAX');
+    const iMobile = idx('핸드폰');
+
+    custImportData = [];
+    for (let i = headerIdx + 1; i < rows.length; i++) {
+      const row = rows[i];
+      const name = String(row[iName] || '').trim();
+      if (!name) continue;
+      const termsRaw = String(row[iTerms] || '');
+      const termsNum = parseInt(termsRaw.match(/\d+/)?.[0]) || 0;
+      const addrParts = [row[iAddr]].filter(Boolean).join(' ');
+      custImportData.push({
+        name,
+        regnum:  String(row[iRegnum] || '').trim(),
+        ceo:     String(row[iCeo]    || '').trim(),
+        mgr:     String(row[iMgr]    || '').trim(),
+        terms:   termsNum,
+        terms_label: termsRaw.trim(),
+        tel:     String(row[iTel]    || '').trim(),
+        email:   String(row[iEmail]  || '').trim(),
+        addr:    addrParts,
+        memo:    [iFax>=0?'FAX:'+row[iFax]:'', iMobile>=0?'Mobile:'+row[iMobile]:''].filter(Boolean).join(' / '),
+      });
+    }
+
+    document.getElementById('custImportCount').textContent = `총 ${custImportData.length}건`;
+    document.getElementById('custImportBody').innerHTML = custImportData.map(c => `
+      <tr>
+        <td><b>${c.name}</b></td><td>${c.regnum||'-'}</td><td>${c.ceo||'-'}</td>
+        <td>${c.mgr||'-'}</td>
+        <td style="color:${c.terms?'#2563eb':'#9ca3af'}">${c.terms_label||'-'}</td>
+        <td>${c.tel||'-'}</td><td>${c.email||'-'}</td>
+        <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.addr||'-'}</td>
+      </tr>`).join('');
+    document.getElementById('custImportPreview').style.display = 'block';
+  };
+  reader.readAsArrayBuffer(file);
+  event.target.value = '';
+}
+
+async function confirmCustImport() {
+  if (!custImportData.length) return;
+  let added = 0, updated = 0;
+  custImportData.forEach(c => {
+    const existing = db.customers.find(x => x.name === c.name);
+    if (existing) {
+      Object.assign(existing, { regnum: c.regnum, ceo: c.ceo, mgr: c.mgr, terms: c.terms, tel: c.tel, email: c.email, addr: c.addr, memo: c.memo });
+      updated++;
+    } else {
+      db.customers.push({ id: db.nextCustId++, ...c });
+      added++;
+    }
+  });
+  await save();
+  await writeLog('거래처 업로드', `${added}건 추가, ${updated}건 업데이트`);
+  renderCustomers();
+  document.getElementById('custImportPreview').style.display = 'none';
+  custImportData = [];
+  showToast(`${added}건 추가, ${updated}건 업데이트 완료!`);
+}
+
+// ============================================================
+// EXCEL IMPORT
+// ============================================================
+function addDays(dateStr, days) {
+  if (!dateStr || !days) return '';
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+let importData = [];
+
+function handleExcelUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const workbook = XLSX.read(e.target.result, { type: 'array', cellDates: true });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+
+    // 헤더 행 찾기
+    let headerIdx = -1;
+    for (let i = 0; i < rows.length; i++) {
+      if (rows[i].some(cell => String(cell).includes('발생일자'))) { headerIdx = i; break; }
+    }
+    if (headerIdx === -1) { showToast('발생일자 헤더를 찾을 수 없습니다.', 'error'); return; }
+
+    const headers = rows[headerIdx].map(h => String(h).trim());
+    const idxOf = (name) => headers.findIndex(h => h.includes(name));
+
+    const iDate   = idxOf('발생일자');
+    const iCust   = idxOf('거래처');
+    const iAmount = idxOf('금액');
+
+    const formatDate = (v) => {
+      if (!v) return '';
+      if (v instanceof Date) return v.toISOString().slice(0, 10);
+      const s = String(v).replace(/\./g, '-').trim();
+      if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+      return s;
+    };
+
+    importData = [];
+    for (let i = headerIdx + 1; i < rows.length; i++) {
+      const row = rows[i];
+      const custName = String(row[iCust] || '').trim();
+      const amount   = parseFloat(String(row[iAmount] || '').replace(/,/g, '')) || 0;
+      if (!custName && !amount) continue;
+
+      const dateStr = formatDate(row[iDate]);
+      const cust    = db.customers.find(c => c.name === custName);
+      importData.push({
+        date:          dateStr,
+        customer:      custName,
+        amount:        amount,
+        type:          '기타',
+        docno:         '',
+        memo:          '',
+        duedate:       '',
+        sales_manager: cust ? (cust.mgr || '') : '',
+        payment_due:   cust && cust.terms ? addDays(dateStr, cust.terms) : '',
+      });
+    }
+
+    // 미리보기
+    document.getElementById('importCount').textContent = `총 ${importData.length}건 발견`;
+    document.getElementById('importBody').innerHTML = importData.map(r => `
+      <tr>
+        <td>${r.date}</td><td>${r.customer}</td>
+        <td class="text-right amount">${Number(r.amount).toLocaleString('ko-KR')}</td>
+        <td style="color:${r.sales_manager?'#2563eb':'#9ca3af'}">${r.sales_manager||'미등록'}</td>
+        <td style="color:${r.payment_due?'#22c55e':'#9ca3af'}">${r.payment_due||'미등록'}</td>
+      </tr>`).join('');
+    document.getElementById('importPreview').style.display = 'block';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+async function confirmImport() {
+  if (!importData.length) return;
+  let added = 0;
+  importData.forEach(r => {
+    if (!r.customer || !r.amount) return;
+    // 거래처 없으면 자동 추가
+    if (!db.customers.find(c => c.name === r.customer)) {
+      db.customers.push({ id: db.nextCustId++, name: r.customer, regnum:'', ceo:'', mgr:'', tel:'', email:'', addr:'', memo:'' });
+    }
+    db.receivables.push({
+      id:            db.nextRecId++,
+      customer:      r.customer,
+      date:          r.date,
+      duedate:       r.duedate,
+      amount:        r.amount,
+      type:          r.type || '기타',
+      docno:         r.docno,
+      memo:          r.memo,
+      sales_manager: r.sales_manager || '',
+      payment_due:   r.payment_due || '',
+    });
+    added++;
+  });
+  await save();
+  await writeLog('미수금 업로드', `${added}건 가져오기 완료`);
+  showToast(`${added}건 가져오기 완료!`);
+  document.getElementById('importPreview').style.display = 'none';
+  document.getElementById('excelFileInput').value = '';
+  importData = [];
+}
+
+// ============================================================
 // EXPORT CSV
 // ============================================================
 function exportCSV() {
@@ -930,39 +1313,22 @@ function formatAmountInput(el) {
   // allow number input normally
 }
 
-load();
-document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric',weekday:'short'});
-document.getElementById('reg_date').value = today();
-document.getElementById('pay_date').value = today();
-populateRegCustomer();
-populatePaySelect();
-renderDashboard();
-
-// Sample data seeding (first time only)
-if (db.customers.length === 0) {
-  const sampleCustomers = [
-    {name:'(주)한국무역', regnum:'123-45-67890', ceo:'김대표', mgr:'이과장', tel:'02-1234-5678', email:'kt@example.com', addr:'서울시 강남구', memo:''},
-    {name:'대성산업(주)', regnum:'234-56-78901', ceo:'박사장', mgr:'최대리', tel:'031-234-5678', email:'ds@example.com', addr:'경기도 수원시', memo:''},
-    {name:'미래전자', regnum:'345-67-89012', ceo:'정대표', mgr:'강주임', tel:'051-345-6789', email:'mf@example.com', addr:'부산시 해운대구', memo:''}
-  ];
-  sampleCustomers.forEach(c => { db.customers.push({id: db.nextCustId++, ...c}); });
-
-  const t = today();
-  const sampleRecs = [
-    {customer:'(주)한국무역', date:'2026-02-01', duedate:'2026-03-01', amount:5500000, type:'외상매출', manager:'이과장', contact:'02-1234-5678', docno:'TI-2026-001', memo:'1월분 납품대금'},
-    {customer:'대성산업(주)', date:'2026-01-15', duedate:'2026-02-15', amount:3200000, type:'용역비', manager:'최대리', contact:'031-234-5678', docno:'TI-2026-002', memo:'설비점검 용역'},
-    {customer:'미래전자', date:'2026-03-10', duedate:'2026-04-10', amount:8800000, type:'외상매출', manager:'강주임', contact:'051-345-6789', docno:'TI-2026-003', memo:'부품 납품'},
-    {customer:'(주)한국무역', date:'2026-04-01', duedate:'2026-05-01', amount:2200000, type:'수수료', manager:'이과장', contact:'02-1234-5678', docno:'TI-2026-004', memo:'4월 수수료'},
-    {customer:'대성산업(주)', date:'2026-04-20', duedate:'2026-05-20', amount:1500000, type:'임대료', manager:'최대리', contact:'031-234-5678', docno:'TI-2026-005', memo:'창고 임대료'},
-  ];
-  sampleRecs.forEach(r => { db.receivables.push({id: db.nextRecId++, ...r}); });
-
-  // Sample payments
-  db.payments.push({id: db.nextPayId++, recId:1, date:'2026-03-05', amount:2000000, method:'계좌이체', memo:'1차 입금'});
-  db.payments.push({id: db.nextPayId++, recId:3, date:'2026-04-15', amount:8800000, method:'계좌이체', memo:'전액 완납'});
-
-  save(); renderDashboard(); populateRegCustomer(); populatePaySelect();
+async function resetAll() {
+  if (!confirm('모든 데이터를 초기화하시겠습니까?')) return;
+  await writeLog('전체 초기화', '모든 데이터 삭제');
+  db = { customers: [], receivables: [], nextCustId: 1, nextRecId: 1 };
+  localStorage.removeItem('misugeum_db');
+  await supabaseClient.from('misugeum_data').delete().eq('id', 1);
+  renderDashboard(); renderCustomers();
+  showToast('초기화 완료', 'info');
 }
+
+(async () => {
+  initWorker();
+  await load();
+  document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ko-KR', {year:'numeric',month:'long',day:'numeric',weekday:'short'});
+  renderDashboard();
+})();
 </script>
 </body>
 </html>
