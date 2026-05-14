@@ -85,6 +85,8 @@
   .card.red .card-value { color: #ef4444; }
   .card.orange .card-value { color: #f97316; }
   .card.green .card-value { color: #10b981; }
+  .card.clickable { cursor: pointer; transition: all 0.18s; }
+  .card.clickable:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
 
   /* Panel */
   .panel {
@@ -526,6 +528,18 @@
   </div>
 </div>
 
+<!-- CARD DETAIL MODAL -->
+<div class="modal-overlay" id="cardDetailModal">
+  <div class="modal" style="width:760px; max-width:96vw;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+      <h3 id="cardDetailTitle" style="margin:0;"></h3>
+      <button class="btn btn-secondary btn-sm" onclick="closeModal('cardDetailModal')">✕ 닫기</button>
+    </div>
+    <div class="table-wrap" id="cardDetailBody"></div>
+    <div id="cardDetailTotal" style="margin-top:12px; text-align:right; font-weight:700; font-size:14px; color:#1e293b;"></div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast-container" id="toastContainer"></div>
 
@@ -640,10 +654,10 @@ function renderDashboard() {
   const custCount = new Set(recs.map(r => r.customer)).size;
 
   document.getElementById('dashCards').innerHTML = `
-    <div class="card blue"><div class="card-label">총 미수금액</div><div class="card-value">${fmtn(total)}</div><div class="card-sub">전체 ${recs.length}건</div></div>
-    <div class="card green"><div class="card-label">거래처 수</div><div class="card-value">${custCount}</div><div class="card-sub">미수 거래처</div></div>
-    <div class="card red"><div class="card-label">연체 금액</div><div class="card-value">${fmtn(overdueAmt)}</div><div class="card-sub">${overdueRecs.length}건 연체 중</div></div>
-    <div class="card orange"><div class="card-label">정상 금액</div><div class="card-value">${fmtn(total - overdueAmt)}</div><div class="card-sub">${recs.length - overdueRecs.length}건 정상</div></div>
+    <div class="card blue clickable" onclick="openCardDetail('total')"><div class="card-label">총 미수금액</div><div class="card-value">${fmtn(total)}</div><div class="card-sub">전체 ${recs.length}건 ›</div></div>
+    <div class="card green clickable" onclick="openCardDetail('customers')"><div class="card-label">거래처 수</div><div class="card-value">${custCount}</div><div class="card-sub">미수 거래처 ›</div></div>
+    <div class="card red clickable" onclick="openCardDetail('overdue')"><div class="card-label">연체 금액</div><div class="card-value">${fmtn(overdueAmt)}</div><div class="card-sub">${overdueRecs.length}건 연체 중 ›</div></div>
+    <div class="card orange clickable" onclick="openCardDetail('normal')"><div class="card-label">정상 금액</div><div class="card-value">${fmtn(total - overdueAmt)}</div><div class="card-sub">${recs.length - overdueRecs.length}건 정상 ›</div></div>
   `;
 
   // 입금예정일 현황
@@ -693,6 +707,77 @@ function renderDashboard() {
   document.getElementById('summaryTable').innerHTML = rows ? `
     <thead><tr><th>거래처</th><th class="text-center">건수</th><th class="text-right">미수잔액</th><th class="text-right">연체금액</th></tr></thead>
     <tbody>${rows}</tbody>` : '<thead></thead><tbody><tr><td colspan="4"><div class="empty-state"><div class="icon">📋</div><div>데이터가 없습니다</div></div></td></tr></tbody>';
+}
+
+// ============================================================
+// CARD DETAIL DRILL-DOWN
+// ============================================================
+function openCardDetail(type) {
+  const recs = db.receivables.filter(r => !r.completed);
+  let title = '', list = [];
+
+  if (type === 'total') {
+    title = '📋 전체 미수금 현황';
+    list = [...recs].sort((a, b) => new Date(a.payment_due||a.duedate||'') - new Date(b.payment_due||b.duedate||''));
+  } else if (type === 'overdue') {
+    title = '🔴 연체 미수금 현황';
+    list = recs.filter(r => overdueDays(r.duedate) > 0).sort((a, b) => overdueDays(b.duedate) - overdueDays(a.duedate));
+  } else if (type === 'normal') {
+    title = '🟢 정상 미수금 현황';
+    list = recs.filter(r => overdueDays(r.duedate) === 0).sort((a, b) => new Date(a.payment_due||a.duedate||'') - new Date(b.payment_due||b.duedate||''));
+  } else if (type === 'customers') {
+    title = '🏢 거래처별 미수금 현황';
+    const map = {};
+    recs.forEach(r => {
+      if (!map[r.customer]) map[r.customer] = { cnt: 0, amt: 0, overdue: 0, mgr: r.sales_manager || '-' };
+      map[r.customer].cnt++;
+      map[r.customer].amt += r.amount;
+      if (overdueDays(r.duedate) > 0) map[r.customer].overdue += r.amount;
+    });
+    const custRows = Object.entries(map).sort((a, b) => b[1].amt - a[1].amt).map(([name, v]) => `
+      <tr>
+        <td>${name}</td>
+        <td>${v.mgr}</td>
+        <td class="text-center">${v.cnt}건</td>
+        <td class="text-right amount" style="color:#6366f1">${fmtn(v.amt)}</td>
+        <td class="text-right amount" style="color:#ef4444">${v.overdue > 0 ? fmtn(v.overdue) : '<span style="color:#94a3b8">-</span>'}</td>
+      </tr>`).join('');
+    document.getElementById('cardDetailTitle').textContent = title;
+    document.getElementById('cardDetailBody').innerHTML = custRows ? `
+      <table>
+        <thead><tr><th>거래처</th><th>영업담당자</th><th class="text-center">건수</th><th class="text-right">미수잔액</th><th class="text-right">연체금액</th></tr></thead>
+        <tbody>${custRows}</tbody>
+      </table>` : '<div class="empty-state"><div class="icon">🏢</div><div>데이터가 없습니다</div></div>';
+    const total = Object.values(map).reduce((s, v) => s + v.amt, 0);
+    document.getElementById('cardDetailTotal').textContent = `합계: ${fmt(total)}`;
+    document.getElementById('cardDetailModal').classList.add('open');
+    return;
+  }
+
+  const statusLabel = { overdue: '<span class="badge badge-red">연체</span>', today: '<span class="badge badge-blue">오늘예정</span>', soon: '<span class="badge badge-yellow">3일이내</span>', normal: '<span class="badge badge-green">정상</span>' };
+  const recRows = list.map((r, i) => {
+    const st = getPaymentStatus(r);
+    const od = overdueDays(r.duedate);
+    return `<tr class="${st === 'overdue' ? 'status-overdue' : st === 'today' ? 'status-today' : st === 'soon' ? 'status-soon' : ''}">
+      <td class="text-center">${i + 1}</td>
+      <td>${r.customer}</td>
+      <td>${r.date || '-'}</td>
+      <td>${r.payment_due || r.duedate || '-'}</td>
+      <td class="text-right amount">${fmtn(r.amount)}</td>
+      <td>${r.sales_manager || '-'}</td>
+      <td>${od > 0 ? `<span class="badge badge-red">D+${od}</span>` : statusLabel[st]}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('cardDetailTitle').textContent = title;
+  document.getElementById('cardDetailBody').innerHTML = recRows ? `
+    <table>
+      <thead><tr><th class="text-center">NO</th><th>거래처</th><th>발생일</th><th>입금예정일</th><th class="text-right">금액</th><th>영업담당자</th><th>상태</th></tr></thead>
+      <tbody>${recRows}</tbody>
+    </table>` : '<div class="empty-state"><div class="icon">📋</div><div>해당 데이터가 없습니다</div></div>';
+  const total = list.reduce((s, r) => s + r.amount, 0);
+  document.getElementById('cardDetailTotal').textContent = list.length > 0 ? `총 ${list.length}건 / 합계: ${fmt(total)}` : '';
+  document.getElementById('cardDetailModal').classList.add('open');
 }
 
 // ============================================================
