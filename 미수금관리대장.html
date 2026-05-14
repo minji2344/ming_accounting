@@ -204,6 +204,16 @@
     .main { padding: 0; } .panel { box-shadow: none; border: 1px solid #ccc; }
     body { background: white; }
   }
+  /* Report print iframe */
+  #reportPrintFrame { display:none; }
+  .report-section { margin-bottom: 28px; }
+  .report-section h4 { font-size: 13px; font-weight: 700; color: #0f172a; padding: 8px 0 10px; border-bottom: 2px solid #e2e8f0; margin-bottom: 12px; letter-spacing: 0.2px; }
+  .report-header-box { background: #f8fafc; border-radius: 10px; padding: 16px 20px; margin-bottom: 20px; display:flex; justify-content:space-between; align-items:center; }
+  .report-kpi { display:grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 4px; }
+  .report-kpi-item { background: white; border-radius: 10px; padding: 14px 16px; border: 1px solid #e2e8f0; text-align:center; }
+  .report-kpi-item .kv { font-size: 20px; font-weight: 700; margin: 4px 0; }
+  .report-kpi-item .kl { font-size: 11px; color: #94a3b8; font-weight: 600; }
+  .trend-bar { display:inline-block; height: 10px; border-radius: 4px; vertical-align: middle; margin-left: 6px; }
 
   /* Status highlight */
   tr.status-overdue td { background: #fff5f5 !important; }
@@ -265,7 +275,18 @@
       </div>
     </div>
     <div class="panel" style="margin-top:16px;">
-      <div class="panel-header"><span class="panel-title">📋 미수금 현황 요약</span></div>
+      <div class="panel-header">
+        <span class="panel-title">📅 월별 미수금 발생 추이</span>
+      </div>
+      <div class="panel-body">
+        <div class="table-wrap"><table id="monthlyTrendTable"></table></div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:16px;">
+      <div class="panel-header">
+        <span class="panel-title">📋 미수금 현황 요약</span>
+        <button class="btn btn-primary btn-sm" onclick="openReport()">📄 분석 보고서 출력</button>
+      </div>
       <div class="panel-body">
         <div class="table-wrap"><table id="summaryTable"></table></div>
       </div>
@@ -528,6 +549,33 @@
   </div>
 </div>
 
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal" style="width:380px; text-align:center; padding:36px 28px;">
+    <div style="font-size:42px; margin-bottom:12px;" id="confirmIcon">🗑️</div>
+    <h3 id="confirmTitle" style="margin-bottom:8px; font-size:16px;"></h3>
+    <p id="confirmMsg" style="color:#64748b; margin-bottom:28px; font-size:13.5px; line-height:1.7;"></p>
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button class="btn btn-danger" id="confirmYesBtn" style="min-width:90px; padding:10px 20px;"></button>
+      <button class="btn btn-secondary" onclick="closeModal('confirmModal')" style="min-width:90px; padding:10px 20px;">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- REPORT MODAL -->
+<div class="modal-overlay" id="reportModal">
+  <div class="modal" style="width:900px; max-width:97vw; max-height:93vh; padding:0; overflow:hidden; display:flex; flex-direction:column;">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:20px 28px; border-bottom:1px solid #f1f5f9; flex-shrink:0;">
+      <h3 style="margin:0; font-size:16px;">📄 미수금 분석 보고서</h3>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-primary btn-sm" onclick="printReport()">🖨️ 인쇄</button>
+        <button class="btn btn-secondary btn-sm" onclick="closeModal('reportModal')">✕ 닫기</button>
+      </div>
+    </div>
+    <div id="reportContent" style="overflow-y:auto; padding:28px; flex:1;"></div>
+  </div>
+</div>
+
 <!-- CARD DETAIL MODAL -->
 <div class="modal-overlay" id="cardDetailModal">
   <div class="modal" style="width:760px; max-width:96vw;">
@@ -707,6 +755,211 @@ function renderDashboard() {
   document.getElementById('summaryTable').innerHTML = rows ? `
     <thead><tr><th>거래처</th><th class="text-center">건수</th><th class="text-right">미수잔액</th><th class="text-right">연체금액</th></tr></thead>
     <tbody>${rows}</tbody>` : '<thead></thead><tbody><tr><td colspan="4"><div class="empty-state"><div class="icon">📋</div><div>데이터가 없습니다</div></div></td></tr></tbody>';
+
+  // 월별 추이
+  renderMonthlyTrend();
+}
+
+function getMonthlyTrend() {
+  const map = {};
+  db.receivables.forEach(r => {
+    const ym = (r.date || '').substring(0, 7);
+    if (!ym) return;
+    if (!map[ym]) map[ym] = { cnt: 0, amt: 0, overdue: 0, normal: 0 };
+    map[ym].cnt++;
+    map[ym].amt += r.amount;
+    if (overdueDays(r.duedate) > 0) map[ym].overdue += r.amount;
+    else map[ym].normal += r.amount;
+  });
+  return Object.entries(map).sort((a, b) => a[0].localeCompare(b[0]));
+}
+
+function renderMonthlyTrend() {
+  const data = getMonthlyTrend();
+  if (!data.length) {
+    document.getElementById('monthlyTrendTable').innerHTML =
+      '<tbody><tr><td><div class="empty-state"><div class="icon">📅</div><div>데이터가 없습니다</div></div></td></tr></tbody>';
+    return;
+  }
+  const maxAmt = Math.max(...data.map(([, v]) => v.amt));
+  let prev = null;
+  const trs = data.map(([ym, v]) => {
+    const [y, m] = ym.split('-');
+    const label = `${y}년 ${parseInt(m)}월`;
+    const diff = prev !== null ? v.amt - prev : null;
+    const diffStr = diff === null ? '-'
+      : diff > 0 ? `<span style="color:#ef4444">▲ ${fmtn(diff)}</span>`
+      : diff < 0 ? `<span style="color:#10b981">▼ ${fmtn(Math.abs(diff))}</span>`
+      : '<span style="color:#94a3b8">-</span>';
+    const barW = maxAmt > 0 ? Math.round((v.amt / maxAmt) * 100) : 0;
+    prev = v.amt;
+    return `<tr>
+      <td style="font-weight:600;">${label}</td>
+      <td class="text-center">${v.cnt}건</td>
+      <td class="text-right amount" style="color:#6366f1">${fmtn(v.amt)}</td>
+      <td class="text-right amount" style="color:#ef4444">${fmtn(v.overdue)}</td>
+      <td class="text-right amount" style="color:#10b981">${fmtn(v.normal)}</td>
+      <td>${diffStr}</td>
+      <td style="min-width:120px;"><div class="trend-bar" style="width:${barW}%; background:#6366f1; opacity:0.7;"></div></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('monthlyTrendTable').innerHTML = `
+    <thead><tr>
+      <th>월</th><th class="text-center">건수</th>
+      <th class="text-right">발생금액</th><th class="text-right">연체금액</th><th class="text-right">정상금액</th>
+      <th class="text-right">전월대비</th><th style="min-width:120px;">비중</th>
+    </tr></thead>
+    <tbody>${trs}</tbody>`;
+}
+
+// ============================================================
+// REPORT
+// ============================================================
+function openReport() {
+  const recs = db.receivables.filter(r => !r.completed);
+  const total = recs.reduce((s, r) => s + r.amount, 0);
+  const overRecs = recs.filter(r => overdueDays(r.duedate) > 0);
+  const overAmt = overRecs.reduce((s, r) => s + r.amount, 0);
+  const custSet = new Set(recs.map(r => r.customer));
+  const overRate = total > 0 ? ((overAmt / total) * 100).toFixed(1) : 0;
+
+  // 상태별
+  const sOverdue = recs.filter(r => getPaymentStatus(r) === 'overdue');
+  const sToday   = recs.filter(r => getPaymentStatus(r) === 'today');
+  const sSoon    = recs.filter(r => getPaymentStatus(r) === 'soon');
+  const sNormal  = recs.filter(r => getPaymentStatus(r) === 'normal');
+
+  // 거래처별
+  const custMap = {};
+  recs.forEach(r => {
+    if (!custMap[r.customer]) custMap[r.customer] = { cnt:0, amt:0, overdue:0 };
+    custMap[r.customer].cnt++;
+    custMap[r.customer].amt += r.amount;
+    if (overdueDays(r.duedate) > 0) custMap[r.customer].overdue += r.amount;
+  });
+  const custRows = Object.entries(custMap).sort((a,b)=>b[1].amt-a[1].amt).map(([name,v],i)=>`
+    <tr>
+      <td class="text-center">${i+1}</td><td>${name}</td>
+      <td class="text-center">${v.cnt}건</td>
+      <td class="text-right amount">${fmtn(v.amt)}</td>
+      <td class="text-right amount" style="color:#ef4444">${v.overdue>0?fmtn(v.overdue):'-'}</td>
+      <td class="text-right">${total>0?((v.amt/total)*100).toFixed(1):0}%</td>
+    </tr>`).join('');
+
+  // 월별
+  const monthly = getMonthlyTrend();
+  let prevAmt = null;
+  const monthRows = monthly.map(([ym, v]) => {
+    const [y, m] = ym.split('-');
+    const diff = prevAmt !== null ? v.amt - prevAmt : null;
+    const diffStr = diff===null?'-':diff>0?`▲ ${fmtn(diff)}`:`▼ ${fmtn(Math.abs(diff))}`;
+    prevAmt = v.amt;
+    return `<tr>
+      <td style="font-weight:600;">${y}년 ${parseInt(m)}월</td>
+      <td class="text-center">${v.cnt}건</td>
+      <td class="text-right amount">${fmtn(v.amt)}</td>
+      <td class="text-right amount" style="color:#ef4444">${fmtn(v.overdue)}</td>
+      <td class="text-right" style="color:${diff>0?'#ef4444':diff<0?'#10b981':'#94a3b8'}">${diffStr}</td>
+    </tr>`;
+  }).join('');
+
+  // 연체 TOP 상세
+  const overdueDetail = overRecs.sort((a,b)=>overdueDays(b.duedate)-overdueDays(a.duedate)).slice(0,10).map((r,i)=>`
+    <tr>
+      <td class="text-center">${i+1}</td><td>${r.customer}</td>
+      <td>${r.date||'-'}</td><td>${r.duedate||'-'}</td>
+      <td class="text-right amount" style="color:#ef4444">${fmtn(r.amount)}</td>
+      <td class="text-center"><span class="badge badge-red">D+${overdueDays(r.duedate)}</span></td>
+    </tr>`).join('');
+
+  const now = new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric'});
+
+  document.getElementById('reportContent').innerHTML = `
+    <div class="report-header-box">
+      <div>
+        <div style="font-size:18px;font-weight:700;color:#0f172a;">미수금 분석 보고서</div>
+        <div style="font-size:12px;color:#94a3b8;margin-top:4px;">기준일: ${now} &nbsp;|&nbsp; 작업자: ${currentWorker}</div>
+      </div>
+      <div style="font-size:12px;color:#64748b;text-align:right;">
+        총 ${recs.length}건 &nbsp;|&nbsp; 거래처 ${custSet.size}개<br>
+        <span style="color:#ef4444;font-weight:600;">연체율 ${overRate}%</span>
+      </div>
+    </div>
+
+    <div class="report-section">
+      <h4>■ 핵심 지표</h4>
+      <div class="report-kpi">
+        <div class="report-kpi-item"><div class="kl">총 미수금액</div><div class="kv" style="color:#6366f1">${fmtn(total)}</div><div class="kl">${recs.length}건</div></div>
+        <div class="report-kpi-item"><div class="kl">연체 금액</div><div class="kv" style="color:#ef4444">${fmtn(overAmt)}</div><div class="kl">${overRecs.length}건 / 연체율 ${overRate}%</div></div>
+        <div class="report-kpi-item"><div class="kl">정상 금액</div><div class="kv" style="color:#10b981">${fmtn(total-overAmt)}</div><div class="kl">${recs.length-overRecs.length}건</div></div>
+        <div class="report-kpi-item"><div class="kl">거래처 수</div><div class="kv" style="color:#f97316">${custSet.size}</div><div class="kl">미수 거래처</div></div>
+      </div>
+    </div>
+
+    <div class="report-section">
+      <h4>■ 입금예정일 상태 분포</h4>
+      <table style="width:100%">
+        <thead><tr><th>상태</th><th class="text-center">건수</th><th class="text-right">금액</th><th class="text-right">비율</th></tr></thead>
+        <tbody>
+          <tr><td><span class="badge badge-red">연체</span></td><td class="text-center">${sOverdue.length}건</td><td class="text-right amount" style="color:#ef4444">${fmtn(sOverdue.reduce((s,r)=>s+r.amount,0))}</td><td class="text-right">${total>0?((sOverdue.reduce((s,r)=>s+r.amount,0)/total)*100).toFixed(1):0}%</td></tr>
+          <tr><td><span class="badge badge-blue">오늘 예정</span></td><td class="text-center">${sToday.length}건</td><td class="text-right amount" style="color:#6366f1">${fmtn(sToday.reduce((s,r)=>s+r.amount,0))}</td><td class="text-right">${total>0?((sToday.reduce((s,r)=>s+r.amount,0)/total)*100).toFixed(1):0}%</td></tr>
+          <tr><td><span class="badge badge-yellow">3일 이내</span></td><td class="text-center">${sSoon.length}건</td><td class="text-right amount" style="color:#ca8a04">${fmtn(sSoon.reduce((s,r)=>s+r.amount,0))}</td><td class="text-right">${total>0?((sSoon.reduce((s,r)=>s+r.amount,0)/total)*100).toFixed(1):0}%</td></tr>
+          <tr><td><span class="badge badge-green">정상</span></td><td class="text-center">${sNormal.length}건</td><td class="text-right amount" style="color:#10b981">${fmtn(sNormal.reduce((s,r)=>s+r.amount,0))}</td><td class="text-right">${total>0?((sNormal.reduce((s,r)=>s+r.amount,0)/total)*100).toFixed(1):0}%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="report-section">
+      <h4>■ 월별 미수금 발생 추이</h4>
+      ${monthly.length ? `<table style="width:100%">
+        <thead><tr><th>월</th><th class="text-center">건수</th><th class="text-right">발생금액</th><th class="text-right">연체금액</th><th class="text-right">전월대비</th></tr></thead>
+        <tbody>${monthRows}</tbody>
+      </table>` : '<div class="empty-state" style="padding:20px"><div>데이터가 없습니다</div></div>'}
+    </div>
+
+    <div class="report-section">
+      <h4>■ 거래처별 미수금 현황</h4>
+      <table style="width:100%">
+        <thead><tr><th class="text-center">순위</th><th>거래처</th><th class="text-center">건수</th><th class="text-right">미수잔액</th><th class="text-right">연체금액</th><th class="text-right">비율</th></tr></thead>
+        <tbody>${custRows || '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:20px;">데이터 없음</td></tr>'}</tbody>
+      </table>
+    </div>
+
+    ${overRecs.length ? `<div class="report-section">
+      <h4>■ 연체 TOP 10 상세</h4>
+      <table style="width:100%">
+        <thead><tr><th class="text-center">순위</th><th>거래처</th><th>발생일</th><th>입금예정일</th><th class="text-right">잔액</th><th class="text-center">연체일수</th></tr></thead>
+        <tbody>${overdueDetail}</tbody>
+      </table>
+    </div>` : ''}
+  `;
+  document.getElementById('reportModal').classList.add('open');
+}
+
+function printReport() {
+  const content = document.getElementById('reportContent').innerHTML;
+  const w = window.open('', '_blank', 'width=900,height=700');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <title>미수금 분석 보고서</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0} body{font-family:'Inter','Malgun Gothic',sans-serif;font-size:12px;color:#1e293b;padding:20px;}
+      table{width:100%;border-collapse:collapse;margin-bottom:4px} thead th{background:#f8fafc;padding:8px 10px;text-align:left;font-size:11px;font-weight:600;color:#64748b;border-bottom:1px solid #e2e8f0;}
+      tbody td{padding:7px 10px;border-bottom:1px solid #f1f5f9;font-size:12px;}
+      .text-right{text-align:right} .text-center{text-align:center}
+      .badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600;}
+      .badge-red{background:#fef2f2;color:#dc2626} .badge-green{background:#f0fdf4;color:#16a34a}
+      .badge-blue{background:#eef2ff;color:#6366f1} .badge-yellow{background:#fefce8;color:#ca8a04}
+      .report-section{margin-bottom:20px} .report-section h4{font-size:12px;font-weight:700;padding:6px 0 8px;border-bottom:2px solid #e2e8f0;margin-bottom:10px;}
+      .report-header-box{background:#f8fafc;padding:12px 16px;margin-bottom:16px;display:flex;justify-content:space-between;}
+      .report-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:4px;}
+      .report-kpi-item{background:white;border:1px solid #e2e8f0;border-radius:8px;padding:10px;text-align:center;}
+      .kv{font-size:16px;font-weight:700;margin:3px 0} .kl{font-size:10px;color:#94a3b8;font-weight:600;}
+      .amount{font-weight:600;}
+    </style>
+  </head><body>${content}</body></html>`);
+  w.document.close();
+  setTimeout(() => { w.focus(); w.print(); }, 500);
 }
 
 // ============================================================
@@ -869,10 +1122,13 @@ async function saveCustEdit() {
 }
 
 function deleteCustomer(id) {
-  if (!confirm('거래처를 삭제하시겠습니까?')) return;
-  db.customers = db.customers.filter(c=>c.id!==id);
-  save(); renderCustomers();
-  showToast('삭제되었습니다', 'info');
+  const c = db.customers.find(x=>x.id===id);
+  if (!c) return;
+  showConfirm('🏢', '거래처 삭제', `[${c.name}] 거래처를 삭제하시겠습니까?`, '삭제', async () => {
+    db.customers = db.customers.filter(x=>x.id!==id);
+    await save(); renderCustomers();
+    showToast('삭제되었습니다', 'info');
+  });
 }
 
 function populateEditCustomer() {
@@ -930,16 +1186,17 @@ async function bulkComplete() {
   showToast(`${ids.length}건 완료 처리되었습니다`);
 }
 
-async function bulkDelete() {
+function bulkDelete() {
   const ids = getCheckedIds();
   if (!ids.length) return;
-  if (!confirm(`${ids.length}건을 삭제하시겠습니까?`)) return;
-  db.receivables = db.receivables.filter(r => !ids.includes(r.id));
-  await save();
-  await writeLog('일괄 삭제', `${ids.length}건 삭제`);
-  clearChecks();
-  renderLedger(); renderDashboard();
-  showToast(`${ids.length}건 삭제되었습니다`, 'info');
+  showConfirm('🗑️', '일괄 삭제', `선택한 ${ids.length}건을 삭제하시겠습니까?\n삭제된 데이터는 복구할 수 없습니다.`, `${ids.length}건 삭제`, async () => {
+    db.receivables = db.receivables.filter(r => !ids.includes(r.id));
+    await save();
+    await writeLog('일괄 삭제', `${ids.length}건 삭제`);
+    clearChecks();
+    renderLedger(); renderDashboard();
+    showToast(`${ids.length}건 삭제되었습니다`, 'info');
+  });
 }
 
 async function markComplete(id) {
@@ -981,14 +1238,16 @@ function renderCompleted() {
     `<tr><td colspan="9"><div class="empty-state"><div class="icon">✅</div><div>완료 내역이 없습니다</div></div></td></tr>`;
 }
 
-async function deleteReceivable(id) {
+function deleteReceivable(id) {
   const r = db.receivables.find(x=>x.id===id);
-  if (!confirm('미수금을 삭제하시겠습니까?')) return;
-  db.receivables = db.receivables.filter(x=>x.id!==id);
-  await save();
-  await writeLog('미수금 삭제', `${r?.customer||''} / ${r?.date||''} / ${fmtn(r?.amount||0)}원`);
-  renderLedger();
-  showToast('삭제되었습니다', 'info');
+  if (!r) return;
+  showConfirm('🗑️', '미수금 삭제', `[${r.customer}] ${r.date || ''} / ${fmt(r.amount)}\n정말 삭제하시겠습니까?`, '삭제', async () => {
+    db.receivables = db.receivables.filter(x=>x.id!==id);
+    await save();
+    await writeLog('미수금 삭제', `${r.customer} / ${r.date||''} / ${fmtn(r.amount)}원`);
+    renderLedger();
+    showToast('삭제되었습니다', 'info');
+  });
 }
 
 function openEdit(id) {
@@ -1026,6 +1285,23 @@ function saveEdit() {
 }
 
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ============================================================
+// CUSTOM CONFIRM
+// ============================================================
+let _confirmCb = null;
+function showConfirm(icon, title, msg, btnLabel, callback) {
+  document.getElementById('confirmIcon').textContent = icon;
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  document.getElementById('confirmYesBtn').textContent = btnLabel;
+  _confirmCb = callback;
+  document.getElementById('confirmModal').classList.add('open');
+}
+document.getElementById('confirmYesBtn').addEventListener('click', () => {
+  closeModal('confirmModal');
+  if (_confirmCb) { _confirmCb(); _confirmCb = null; }
+});
 
 // ============================================================
 // LEDGER
@@ -1435,14 +1711,15 @@ function formatAmountInput(el) {
   // allow number input normally
 }
 
-async function resetAll() {
-  if (!confirm('모든 데이터를 초기화하시겠습니까?')) return;
+function resetAll() {
+  showConfirm('⚠️', '전체 초기화', '모든 미수금 데이터를 삭제합니다.\n이 작업은 되돌릴 수 없습니다.\n정말 초기화하시겠습니까?', '전체 초기화', async () => {
   await writeLog('전체 초기화', '모든 데이터 삭제');
-  db = { customers: [], receivables: [], nextCustId: 1, nextRecId: 1 };
-  localStorage.removeItem('misugeum_db');
-  await supabaseClient.from('misugeum_data').delete().eq('id', 1);
-  renderDashboard(); renderCustomers();
-  showToast('초기화 완료', 'info');
+    db = { customers: [], receivables: [], nextCustId: 1, nextRecId: 1 };
+    localStorage.removeItem('misugeum_db');
+    await supabaseClient.from('misugeum_data').delete().eq('id', 1);
+    renderDashboard(); renderCustomers();
+    showToast('초기화 완료', 'info');
+  });
 }
 
 (async () => {
